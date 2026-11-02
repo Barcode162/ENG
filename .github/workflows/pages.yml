@@ -1,0 +1,44 @@
+# Tests the story, builds the game and puts it on the gh-pages branch,
+# which GitHub Pages serves (https://barcode162.github.io/ENG/).
+name: Build and publish
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: pages
+  cancel-in-progress: true
+env:
+  EMSDK_VERSION: 6.0.13
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Emscripten (cached)
+        uses: actions/cache@v4
+        with:
+          path: emsdk
+          key: emsdk-${{ env.EMSDK_VERSION }}-v1
+      - name: Install Emscripten
+        run: |
+          if [ ! -d emsdk ]; then git clone --depth 1 https://github.com/emscripten-core/emsdk.git; fi
+          ./emsdk/emsdk install $EMSDK_VERSION
+          ./emsdk/emsdk activate $EMSDK_VERSION
+      - name: Test and build
+        run: |
+          source ./emsdk/emsdk_env.sh
+          ./build.sh
+          echo "${GITHUB_SHA::7}" > site/version.txt
+          touch site/.nojekyll
+      - name: Publish to gh-pages
+        run: |
+          cd site
+          git init -q -b gh-pages
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -q -m "The game, built from ${GITHUB_SHA::7}"
+          git push -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" gh-pages

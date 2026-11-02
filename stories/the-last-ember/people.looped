@@ -1,0 +1,65 @@
+# The people of the story. A person has a robe, a skin, hair or a hood
+# or a pointed hat, a height, maybe a light they carry, and `a spirit`
+# makes them glow. Some speak but are never seen standing anywhere: the
+# Warden is the great oak, the Watcher is a giant of stone.
+
+person Mira
+  about: The village lamplighter. She has lit Emberhollow's lamps for sixty winters.
+  robe plum
+  hood dove grey
+  skin warm tan
+  height 1.55 m
+
+person Tobin
+  about: A boy from the bakery, braver than he thinks.
+  robe fern
+  hair chestnut
+  skin rosy
+  height 1.25 m
+
+person Pip
+  about: A wisp. Small, blue, and lost.
+  a spirit
+  robe wisp blue
+  hair moon silver
+  skin wisp blue
+  height 0.75 m
+  a light 0.6 m up: a wisp light
+
+person The Warden
+  about: The voice of the great oak.
+
+person Old Bram
+  about: The ferryman of the Silver Ford.
+  robe river brown
+  hood sea green
+  skin weathered
+  height 1.8 m
+
+person The Lady of the Ford
+  about: The spirit of the river.
+  a spirit
+  robe pale blue
+  hair moon silver
+  skin pale blue
+  height 2.1 m
+  a light 1.7 m up: a spirit glow
+
+person Ysolde
+  about: A hermit who has kept her own fire on the peak for twenty years.
+  robe snow white
+  pointed hat slate
+  skin pale
+  height 1.7 m
+
+person The Watcher
+  about: A giant of stone on the peak.
+
+person Sorrel
+  about: The spirit of the Hearthflame, nearly out.
+  a spirit
+  robe fox red
+  pointed hat fox red
+  skin fox cream
+  height 0.85 m
+  a light 0.6 m up: a fox fire

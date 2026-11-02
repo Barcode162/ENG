@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0E0906">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>The Last Ember</title>
+<style>
+  :root {
+    --bg: #0E0906; --text: #F6EBDD; --text-2: #C2AC92; --text-3: #7F6B57; --accent: #F4A64A;
+    --panel: linear-gradient(160deg, rgba(40,26,16,.82), rgba(20,13,8,.86));
+    --edge: inset 0 1px 0 rgba(255,228,195,.18), inset 0 0 0 1px rgba(255,214,170,.1);
+    --go: linear-gradient(135deg, #F8BF68, #EC7F34);
+    --story: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    --ui: -apple-system, system-ui, "Segoe UI", Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text); font-family: var(--ui); overflow: hidden;
+    overscroll-behavior: none; -webkit-user-select: none; user-select: none; touch-action: none; }
+  canvas { position: fixed; inset: 0; width: 100vw; height: 100vh; height: 100dvh; display: block; }
+  button { font: inherit; color: inherit; border: 0; cursor: pointer; }
+  .hidden { display: none !important; }
+
+  /* The title screen */
+  #title { position: fixed; inset: 0; display: grid; place-items: center; text-align: center; padding: 24px 16px;
+    background: radial-gradient(ellipse 70% 50% at 50% 40%, rgba(242,140,44,.25), transparent 70%), rgba(10,6,4,.72); z-index: 10; }
+  #title h1 { font-family: var(--story); font-weight: 600; font-size: clamp(40px, 11vw, 84px); line-height: 1; margin: 0 0 10px;
+    letter-spacing: -.01em; color: #FFE2B8; text-shadow: 0 0 24px rgba(244,166,74,.7), 0 0 60px rgba(236,127,52,.45); }
+  #title p { margin: 0 auto 28px; max-width: 30em; color: var(--text-2); font-size: 15px; line-height: 1.5; }
+  .row { display: flex; flex-direction: column; gap: 12px; align-items: center; }
+  .go { background: var(--go); color: #1E1206; font-weight: 700; font-size: 18px; padding: 15px 36px; border-radius: 999px; min-width: 220px;
+    box-shadow: 0 8px 30px rgba(236,127,52,.35); }
+  .soft { background: rgba(255,220,180,.1); box-shadow: var(--edge); padding: 13px 28px; border-radius: 999px; min-width: 220px; font-size: 16px; }
+  .link { color: var(--text-2); font-size: 14px; text-decoration: underline; text-underline-offset: 3px; margin-top: 10px; }
+  .small { color: var(--text-3); font-size: 12px; margin-top: 22px; }
+  #status { min-height: 1.4em; }
+
+  /* The place's name, when you arrive */
+  #placeName { position: fixed; top: calc(env(safe-area-inset-top) + 22px); left: 0; right: 0; text-align: center; pointer-events: none;
+    font-family: var(--story); font-size: 26px; color: #FFE2B8; text-shadow: 0 0 18px rgba(0,0,0,.9), 0 0 30px rgba(244,166,74,.5);
+    opacity: 0; transition: opacity 1.2s; z-index: 3; }
+  #placeName.on { opacity: 1; }
+
+  /* The bag */
+  #bagBtn { position: fixed; top: calc(env(safe-area-inset-top) + 12px); right: 12px; z-index: 4; width: 52px; height: 52px; border-radius: 16px;
+    background: var(--panel); box-shadow: var(--edge); display: grid; place-items: center; }
+  #bagBtn svg { width: 26px; height: 26px; }
+  #bagCount { position: absolute; right: -4px; top: -4px; background: var(--accent); color: #1E1206; font-size: 12px; font-weight: 800;
+    min-width: 20px; height: 20px; border-radius: 10px; display: grid; place-items: center; padding: 0 5px; }
+  #bag { position: fixed; top: calc(env(safe-area-inset-top) + 72px); right: 12px; left: 12px; max-width: 420px; margin-left: auto; z-index: 6;
+    background: var(--panel); box-shadow: var(--edge), 0 20px 50px rgba(0,0,0,.5); border-radius: 22px; padding: 16px 18px; -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
+  #bag h3 { margin: 0 0 8px; font-size: 13px; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); }
+  #bag .item { padding: 10px 0; border-top: 1px solid rgba(255,225,190,.1); }
+  #bag .item b { display: block; font-family: var(--story); font-size: 18px; text-transform: capitalize; }
+  #bag .item span { color: var(--text-2); font-size: 14px; line-height: 1.4; }
+  #bag .empty { color: var(--text-3); font-size: 14px; }
+
+  /* What you can do here */
+  #acts { position: fixed; left: 0; right: 0; bottom: calc(env(safe-area-inset-bottom) + 130px); display: flex; flex-wrap: wrap; justify-content: center;
+    gap: 10px; padding: 0 16px; z-index: 4; pointer-events: none; }
+  #acts button { pointer-events: auto; background: var(--go); color: #1E1206; font-weight: 700; font-size: 17px; padding: 14px 22px; border-radius: 999px;
+    box-shadow: 0 8px 26px rgba(236,127,52,.4); animation: pop .25s ease-out; }
+  @keyframes pop { from { transform: scale(.85); opacity: 0; } to { transform: none; opacity: 1; } }
+
+  /* Talking */
+  #talk { position: fixed; left: 0; right: 0; bottom: 0; z-index: 5; padding: 0 12px calc(env(safe-area-inset-bottom) + 12px); }
+  #talkBox { max-width: 640px; margin: 0 auto; background: var(--panel); box-shadow: var(--edge), 0 -10px 50px rgba(0,0,0,.45); border-radius: 22px;
+    padding: 18px 20px 16px; -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
+  #who { font-size: 12px; letter-spacing: .16em; text-transform: uppercase; color: var(--accent); font-weight: 700; min-height: 1em; margin-bottom: 6px; }
+  #text { font-family: var(--story); font-size: 20px; line-height: 1.45; min-height: 2.9em; }
+  #text.narration { color: #E9DCCB; font-style: italic; }
+  #more { text-align: right; color: var(--text-3); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; margin-top: 6px; }
+  #choices { display: flex; flex-direction: column; gap: 9px; margin-top: 12px; }
+  #choices button { text-align: left; background: rgba(255,220,180,.1); box-shadow: var(--edge); border-radius: 14px; padding: 13px 16px;
+    font-family: var(--story); font-size: 17px; line-height: 1.35; }
+  #choices button:active { background: rgba(244,166,74,.3); }
+
+  /* The thumbs */
+  #stick { position: fixed; width: 120px; height: 120px; margin: -60px 0 0 -60px; border-radius: 50%; z-index: 2; pointer-events: none;
+    background: radial-gradient(circle, rgba(255,220,180,.08), rgba(255,220,180,.02)); box-shadow: inset 0 0 0 1.5px rgba(255,220,180,.22); }
+  #knob { position: absolute; left: 35px; top: 35px; width: 50px; height: 50px; border-radius: 50%;
+    background: radial-gradient(circle at 45% 30%, rgba(255,230,190,.45), transparent 45%), radial-gradient(circle, #3A2A1E, #1A120C); box-shadow: 0 4px 14px rgba(0,0,0,.5); }
+  #hint { position: fixed; left: 0; right: 0; bottom: calc(env(safe-area-inset-bottom) + 28px); text-align: center; color: var(--text-2); font-size: 13px;
+    pointer-events: none; z-index: 2; text-shadow: 0 1px 6px #000; transition: opacity 1s; }
+
+  /* The end */
+  #end { position: fixed; inset: 0; z-index: 9; display: grid; place-items: center; text-align: center; padding: 24px 16px;
+    background: radial-gradient(ellipse 70% 50% at 50% 45%, rgba(242,140,44,.22), transparent 70%), rgba(10,6,4,.8); animation: fade 2s; }
+  @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+  #end .kicker { font-size: 12px; letter-spacing: .2em; text-transform: uppercase; color: var(--accent); margin-bottom: 12px; }
+  #end h2 { font-family: var(--story); font-weight: 600; font-size: clamp(34px, 9vw, 64px); margin: 0 0 14px; color: #FFE2B8; text-shadow: 0 0 24px rgba(244,166,74,.6); }
+  #end p { color: var(--text-2); margin: 0 auto 26px; max-width: 26em; line-height: 1.5; }
+
+  /* Problems in the script (for whoever's writing it) */
+  #problems { position: fixed; inset: 16px; z-index: 20; overflow: auto; background: #1a0f0a; border-radius: 16px; padding: 16px; box-shadow: var(--edge);
+    font: 13px/1.5 ui-monospace, Menlo, monospace; white-space: pre-wrap; color: #F27A68; -webkit-user-select: text; user-select: text; }
+</style>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+
+<div id="placeName"></div>
+<button id="bagBtn" class="hidden" aria-label="What you carry">
+  <svg viewBox="0 0 24 24" fill="none" stroke="#F4A64A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h12l-1 12H7L6 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>
+  <span id="bagCount">0</span>
+</button>
+<div id="bag" class="hidden"><h3>What you carry</h3><div id="bagList"></div></div>
+<div id="acts"></div>
+<div id="stick" class="hidden"><div id="knob"></div></div>
+<div id="hint" class="hidden">Left thumb walks · right thumb looks</div>
+
+<div id="talk" class="hidden">
+  <div id="talkBox">
+    <div id="who"></div>
+    <div id="text"></div>
+    <div id="choices"></div>
+    <div id="more">Tap to go on</div>
+  </div>
+</div>
+
+<div id="title">
+  <div>
+    <h1>The Last Ember</h1>
+    <p>A story written in Looped Script and drawn by Looped, J&nbsp;Production's own engine. Every lamp in Emberhollow has gone out. Bring the fire back.</p>
+    <div class="row">
+      <button class="go" id="begin" disabled>Loading…</button>
+      <button class="soft hidden" id="carry">Carry on</button>
+      <a class="link" href="script.html">Read the script</a>
+    </div>
+    <div class="small" id="status"></div>
+  </div>
+</div>
+
+<div id="end" class="hidden">
+  <div>
+    <div class="kicker">The end</div>
+    <h2 id="endTitle"></h2>
+    <p>There are other endings. What you said, who you helped and what you carried all mattered.</p>
+    <div class="row">
+      <button class="go" id="again">Play again</button>
+      <a class="link" href="script.html">Read the script</a>
+    </div>
+  </div>
+</div>
+<pre id="problems" class="hidden"></pre>
+
+<script>
+'use strict';
+const $ = (id) => document.getElementById(id);
+const SAVE = 'last-ember-save-v1';
+const store = {
+  get() { try { return localStorage.getItem(SAVE) || ''; } catch (e) { return ''; } },
+  set(v) { try { if (v) localStorage.setItem(SAVE, v); else localStorage.removeItem(SAVE); } catch (e) {} },
+};
+let api = null, playing = false, backend = '', lastChanges = -1, lastPlace = '', typing = null, beatKey = '', saveAt = 0;
+
+window.gameStatus = (b, problem) => {
+  backend = b;
+  $('status').textContent = problem ? problem : 'Drawn with ' + b;
+};
+
+var Module = {
+  canvas: $('canvas'),
+  onRuntimeInitialized() {
+    api = {
+      files: Module.cwrap('g_storyFiles', 'string', ['string']),
+      add: Module.cwrap('g_addFile', null, ['string', 'string']),
+      begin: Module.cwrap('g_begin', 'string', ['string']),
+      move: Module.cwrap('g_move', null, ['number', 'number']),
+      look: Module.cwrap('g_look', null, ['number', 'number']),
+      next: Module.cwrap('g_next', null, []),
+      choose: Module.cwrap('g_choose', null, ['number']),
+      act: Module.cwrap('g_act', null, ['number']),
+      state: Module.cwrap('g_state', 'string', []),
+      save: Module.cwrap('g_save', 'string', []),
+    };
+    loadStory();
+  },
+};
+
+async function loadStory() {
+  try {
+    const get = async (n) => { const r = await fetch('story/' + n, { cache: 'no-cache' }); if (!r.ok) throw new Error(n + ' is missing'); return r.text(); };
+    const first = await get('story.looped');
+    const names = api.files(first).split('\n').filter(Boolean);
+    const texts = await Promise.all(['first.looped', ...names].map(get));
+    ['first.looped', ...names].forEach((n, i) => api.add(n, texts[i]));
+    api.add('story.looped', first);
+    $('begin').disabled = false;
+    $('begin').textContent = 'Begin';
+    if (store.get()) $('carry').classList.remove('hidden');
+  } catch (e) {
+    $('status').textContent = 'The story didn’t load: ' + e.message;
+  }
+}
+
+function start(save) {
+  const problems = api.begin(save || '');
+  if (problems) {
+    $('problems').textContent = 'The story has problems:\n\n' + problems;
+    $('problems').classList.remove('hidden');
+    return;
+  }
+  $('title').classList.add('hidden');
+  $('end').classList.add('hidden');
+  playing = true;
+  lastChanges = -1, lastPlace = '', beatKey = '';
+  $('hint').classList.remove('hidden');
+  setTimeout(() => { $('hint').style.opacity = 0; }, 7000);
+  requestAnimationFrame(tick);
+}
+$('begin').onclick = () => { store.set(''); start(''); };
+$('carry').onclick = () => start(store.get());
+$('again').onclick = () => { store.set(''); start(''); };
+
+// ---- Each frame: what the story shows ----
+function tick() {
+  if (!playing) return;
+  const s = JSON.parse(api.state());
+  if (s.error) { $('problems').textContent = 'The story stopped: ' + s.error; $('problems').classList.remove('hidden'); }
+  // The place's name, when you arrive.
+  if (s.place !== lastPlace) {
+    lastPlace = s.place;
+    const el = $('placeName');
+    el.textContent = s.place;
+    el.classList.add('on');
+    clearTimeout(el.t);
+    el.t = setTimeout(() => el.classList.remove('on'), 3500);
+  }
+  if (s.changes !== lastChanges) { lastChanges = s.changes; showBag(s.items); }
+  showBeat(s.beat);
+  showActs(s.beat.k === 'none' ? s.near : []);
+  if (s.ending) {
+    playing = false;
+    store.set('');
+    setTimeout(() => {
+      $('endTitle').textContent = s.ending;
+      $('end').classList.remove('hidden');
+      $('talk').classList.add('hidden');
+    }, 400);
+    return;
+  }
+  // Saving, now and then, between conversations.
+  const now = performance.now();
+  if (s.beat.k === 'none' && now > saveAt) { saveAt = now + 2000; const v = api.save(); if (v) store.set(v); }
+  requestAnimationFrame(tick);
+}
+
+function showBeat(b) {
+  const key = b.k + '|' + b.who + '|' + b.text + '|' + b.choices.join('|');
+  if (key === beatKey) return;
+  beatKey = key;
+  const talk = $('talk');
+  if (b.k === 'none' || b.k === 'end') {
+    if (b.k === 'none') talk.classList.add('hidden');
+    return;
+  }
+  api.move(0, 0);
+  talk.classList.remove('hidden');
+  const choices = $('choices');
+  choices.innerHTML = '';
+  if (b.k === 'choose') {
+    // The last line stays up (finished), so you can see what you're answering.
+    clearInterval(typing); typing = null;
+    if ($('text').full) $('text').textContent = $('text').full;
+    $('text').style.minHeight = '0';
+    $('more').classList.add('hidden');
+    b.choices.forEach((c, i) => {
+      const btn = document.createElement('button');
+      btn.textContent = c;
+      btn.onclick = (e) => { e.stopPropagation(); api.choose(i); };
+      choices.appendChild(btn);
+    });
+    return;
+  }
+  $('text').style.minHeight = '';
+  $('who').textContent = b.k === 'speak' ? (b.who === 'you' ? 'You' : b.who) : '';
+  $('text').className = b.k === 'say' ? 'narration' : '';
+  $('more').classList.remove('hidden');
+  typeOut(b.k === 'speak' ? '“' + b.text + '”' : b.text);
+}
+
+function typeOut(text) {
+  clearInterval(typing);
+  const el = $('text');
+  let n = 0;
+  el.textContent = '';
+  typing = setInterval(() => {
+    n = Math.min(text.length, n + 2);
+    el.textContent = text.slice(0, n);
+    if (n >= text.length) { clearInterval(typing); typing = null; }
+  }, 16);
+  el.full = text;
+}
+
+$('talk').addEventListener('pointerup', (e) => {
+  if (e.target.closest('#choices')) return;
+  if (typing) { clearInterval(typing); typing = null; $('text').textContent = $('text').full; return; }
+  api.next();
+});
+
+let actsKey = '';
+function showActs(near) {
+  const key = near.join('|');
+  if (key === actsKey) return;
+  actsKey = key;
+  const box = $('acts');
+  box.innerHTML = '';
+  near.forEach((label, i) => {
+    const b = document.createElement('button');
+    b.textContent = label;
+    b.onclick = (e) => { e.stopPropagation(); api.act(i); };
+    box.appendChild(b);
+  });
+}
+
+function showBag(items) {
+  $('bagBtn').classList.toggle('hidden', !items.length);
+  $('bagCount').textContent = items.length;
+  const list = $('bagList');
+  list.innerHTML = '';
+  if (!items.length) list.innerHTML = '<div class="empty">Nothing yet.</div>';
+  for (const it of items) {
+    const d = document.createElement('div');
+    d.className = 'item';
+    d.innerHTML = '<b></b><span></span>';
+    d.querySelector('b').textContent = it.name;
+    d.querySelector('span').textContent = it.about;
+    list.appendChild(d);
+  }
+}
+$('bagBtn').onclick = (e) => { e.stopPropagation(); $('bag').classList.toggle('hidden'); };
+$('bag').onclick = () => $('bag').classList.add('hidden');
+
+// ---- The thumbs: left half walks, right half looks; keys and mouse on a computer ----
+const touches = new Map();
+const canvas = $('canvas');
+canvas.addEventListener('pointerdown', (e) => {
+  if (!playing) return;
+  $('bag').classList.add('hidden');
+  const left = e.clientX < window.innerWidth * 0.45 && e.pointerType !== 'mouse';
+  touches.set(e.pointerId, { left, x0: e.clientX, y0: e.clientY, x: e.clientX, y: e.clientY });
+  if (left) {
+    const st = $('stick');
+    st.style.left = e.clientX + 'px';
+    st.style.top = e.clientY + 'px';
+    st.classList.remove('hidden');
+    $('knob').style.transform = '';
+  }
+  canvas.setPointerCapture(e.pointerId);
+});
+canvas.addEventListener('pointermove', (e) => {
+  const t = touches.get(e.pointerId);
+  if (!t) return;
+  if (t.left) {
+    let dx = e.clientX - t.x0, dy = e.clientY - t.y0;
+    const len = Math.hypot(dx, dy), max = 50;
+    if (len > max) { dx *= max / len; dy *= max / len; }
+    $('knob').style.transform = `translate(${dx}px, ${dy}px)`;
+    const k = len < 8 ? 0 : 1;
+    api.move((dx / max) * k, (-dy / max) * k);
+  } else {
+    const s = e.pointerType === 'mouse' ? 0.25 : 0.32;
+    api.look((e.clientX - t.x) * s, (e.clientY - t.y) * s);
+  }
+  t.x = e.clientX, t.y = e.clientY;
+});
+const up = (e) => {
+  const t = touches.get(e.pointerId);
+  if (!t) return;
+  touches.delete(e.pointerId);
+  if (t.left) { $('stick').classList.add('hidden'); api.move(0, 0); }
+};
+canvas.addEventListener('pointerup', up);
+canvas.addEventListener('pointercancel', up);
+
+const keys = new Set();
+const keyMove = () => {
+  if (!api || !playing) return;
+  const x = (keys.has('KeyD') || keys.has('ArrowRight') ? 1 : 0) - (keys.has('KeyA') || keys.has('ArrowLeft') ? 1 : 0);
+  const y = (keys.has('KeyW') || keys.has('ArrowUp') ? 1 : 0) - (keys.has('KeyS') || keys.has('ArrowDown') ? 1 : 0);
+  api.move(x, y);
+};
+addEventListener('keydown', (e) => {
+  keys.add(e.code); keyMove();
+  if ((e.code === 'Space' || e.code === 'Enter') && playing && !$('talk').classList.contains('hidden')) $('talk').dispatchEvent(new PointerEvent('pointerup'));
+  if (e.code === 'KeyE' && playing) { const b = $('acts').querySelector('button'); if (b) b.click(); }
+});
+addEventListener('keyup', (e) => { keys.delete(e.code); keyMove(); });
+document.addEventListener('gesturestart', (e) => e.preventDefault());
+</script>
+<script src="game.js"></script>
+</body>
+</html>

@@ -1,0 +1,78 @@
+# The Hearth hill above Emberhollow, where the Hearthflame burned for a
+# thousand years. Every ending is decided here.
+
+place the hill
+  title: The Hearth Hill
+  the sky: night
+  the mist: thick
+  the ground: hill grass, 44 by 44 m
+  you come in at 0 15, facing 0
+
+  a hearth bowl called the Hearth at 0 -4, unlit
+  Sorrel at 2.2 0.4, facing 20
+  12 standing stones around 0 -4, 10 to 11 m away
+  a way to the village at 0 18, turned 180
+  8 fallen logs between -14 -14 and 14 14
+  6 rocks between -16 -16 and 16 16
+
+  when you first arrive
+    say: The top of the hill is thick with Grey. In the middle stands the Hearth: a great stone bowl, cold as a gravestone.
+    say: Curled at its foot is a small red fox that glows like the last coal in a grate.
+
+  when you look at the Hearth
+    say: The Hearth. A thousand years of fire, and tonight, nothing but ash.
+
+  when you talk to Sorrel
+    if met sorrel
+      Sorrel: Are you ready, lamp-carrier?
+    otherwise
+      remember met sorrel
+      Sorrel: Oh. A lamp-carrier. I'm Sorrel. I was the Hearthflame, once. Now I'm nearly out.
+      Sorrel: Every night, someone from the village used to climb the hill with a stick of wood and a thank-you. A fire needs feeding. Then they stopped coming, and I got smaller, and smaller.
+    if embers is 3
+      Sorrel: You've brought all three! The woods, the river and the peak. I haven't felt this warm in years.
+    otherwise
+      Sorrel: You've brought embers. Not all three, but enough for a small fire.
+    choose
+      choice: Take them, Sorrel. Light the Hearth.
+        if embers is 3
+          Sorrel: Gladly. But promise me one thing first. Promise me the village will climb the hill again.
+          choose
+            choice if kindness is at least 2: I promise. And I'll be the first one up the hill, every night.
+              Sorrel: I believe you. You've been kind all night. I can smell it on you, like woodsmoke.
+              light the Hearth
+              say: The three embers leap from your hands into the bowl: red, blue and white. The fire that rises is taller than the houses.
+              say: Out over the valley the Grey tears like wet paper. Far below, one by one, every lamp in Emberhollow flickers back to life.
+              go to morning
+            choice: I can't promise for everyone.
+              Sorrel: Honest. Then it will be a fire that lasts as long as someone feeds it.
+              light the Hearth
+              say: The three embers leap into the bowl, and the fire that rises is tall and gold. Far below, the village lamps come back on.
+              say: Next winter, and the winter after, you climb the hill each night with a stick of wood. Some nights, others come too.
+              the end: A Fire That Lasts
+        otherwise
+          light the Hearth
+          say: The embers catch, small and stubborn. Not the great flame of the old songs, but a fire, and the Grey backs away from it.
+          say: All winter, Emberhollow huddles close around its little light. Next year, you tell Mira, you will go further.
+          the end: A Small Fire
+      choice: What if I give you Mira's lantern, too? The last spark from the village.
+        Sorrel: Your spark? It would make me strong again. But a fire needs a keeper. Someone would have to stay up here and tend it.
+        choose
+          choice: Then I'll stay.
+            you lose the old lantern
+            light the Hearth
+            say: You open the lantern. The spark and the embers rise together, and the Hearth roars into gold.
+            say: The village gets its fire back. Mira cries when you tell her you're staying. But every night, someone climbs the hill with a stick of wood, just to sit with you.
+            the end: The Keeper of the Hill
+          choice: I can't. Not yet.
+            Sorrel: Nobody should have to. Talk to me again when you've decided.
+      choice: They're mine. I carried them all this way.
+        Sorrel: That's true. They're yours. Keep them, and you'll never be cold again.
+        choose
+          choice: Then I'll keep them.
+            say: You close your hands. The embers are warm, and they're yours, and you walk back down the hill alone.
+            say: Behind you, the little fox flickers once, and goes out. The Grey rolls down into Emberhollow and stays all winter.
+            the end: Into the Grey
+          choice: No. That's not who I want to be. Take them.
+            add 1 to kindness
+            Sorrel: I knew it. Talk to me again when you're ready.

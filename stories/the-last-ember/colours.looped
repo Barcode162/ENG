@@ -1,0 +1,64 @@
+# The story's colours: red, green and blue from 0 to 1, as the eye sees them.
+
+# ---- Ground ----
+colour moss: 0.2 0.27 0.15
+colour forest floor: 0.17 0.16 0.11
+colour pebbles: 0.3 0.3 0.28
+colour snow: 0.66 0.7 0.76
+colour hill grass: 0.22 0.25 0.16
+colour dirt: 0.34 0.26 0.18
+
+# ---- Building ----
+colour plaster: 0.8 0.74 0.63
+colour thatch: 0.56 0.43 0.24
+colour oak: 0.42 0.28 0.16
+colour dark oak: 0.25 0.17 0.1
+colour stone: 0.5 0.5 0.48
+colour dark stone: 0.3 0.3 0.31
+colour mossy stone: 0.38 0.42 0.34
+colour iron: 0.13 0.13 0.15
+colour silver: 0.8 0.82 0.86
+colour canvas: 0.7 0.62 0.48
+colour ash: 0.12 0.11 0.1
+
+# ---- Growing ----
+colour pine: 0.11 0.26 0.17
+colour dark pine: 0.08 0.19 0.13
+colour bark: 0.3 0.2 0.13
+colour leaf: 0.2 0.34 0.17
+colour old leaf: 0.27 0.33 0.15
+colour reed: 0.45 0.48 0.25
+colour toadstool red: 0.75 0.16 0.12
+colour cream: 0.92 0.86 0.74
+colour water: 0.05 0.11 0.2
+colour ice: 0.62 0.8 0.95
+
+# ---- Glowing ----
+colour window gold: 1 0.72 0.36
+colour lamp gold: 1 0.8 0.45
+colour fire: 1 0.48 0.12
+colour ember red: 1 0.35 0.1
+colour toadstool teal: 0.35 1 0.82
+colour wisp blue: 0.55 0.8 1
+colour river blue: 0.35 0.65 1
+colour waymark blue: 0.6 0.85 1
+colour star white: 1 0.95 0.85
+
+# ---- People ----
+colour plum: 0.42 0.2 0.35
+colour dove grey: 0.62 0.6 0.6
+colour warm tan: 0.78 0.58 0.44
+colour rosy: 0.92 0.7 0.6
+colour deep brown: 0.4 0.27 0.2
+colour chestnut: 0.45 0.25 0.12
+colour fern: 0.3 0.45 0.22
+colour river brown: 0.36 0.3 0.24
+colour sea green: 0.22 0.36 0.34
+colour weathered: 0.68 0.52 0.42
+colour pale blue: 0.6 0.78 0.95
+colour moon silver: 0.85 0.88 0.95
+colour snow white: 0.9 0.9 0.88
+colour slate: 0.3 0.33 0.38
+colour pale: 0.88 0.76 0.68
+colour fox red: 0.95 0.38 0.12
+colour fox cream: 1 0.85 0.65

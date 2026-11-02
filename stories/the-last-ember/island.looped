@@ -1,0 +1,68 @@
+# The Lady's island, in the middle of the Silver Ford.
+
+place the island
+  title: The Lady's Island
+  the sky: night
+  the mist: light
+  the ground: pebbles, 44 by 44 m
+  you come in at 0 6, facing 0
+
+  a river at 0 -15
+  a river at 0 15
+  a river at -15 0, turned 90
+  a river at 15 0, turned 90
+  a ferry boat at 3 10, turned 90
+  Old Bram at 1 7.6, facing 200
+  a shrine at 0 -4
+  The Lady of the Ford at -1.8 -2.6, facing 30
+  16 reeds between -9 -9 and 9 9
+  6 rocks between -8 -8 and 8 8
+
+  when you first arrive
+    say: The boat bumps against the island. Bram holds it steady with the oar.
+    Old Bram: I'll wait here. Don't keep her waiting, though. They say she's patient, but rivers aren't.
+
+  when you talk to Old Bram
+    Old Bram: Back across?
+    choose
+      choice: Yes, take me back.
+        go to the ford
+      choice: Not yet.
+        Old Bram: I'm not going anywhere.
+
+  when you talk to the Lady of the Ford
+    if the lady gave her ember
+      The Lady of the Ford: The river runs on. Go, little flame.
+    otherwise
+      The Lady of the Ford: A visitor. How long it has been since anyone rowed out with a gift.
+      The Lady of the Ford: The river does not give. It only trades. What will you leave in the water for my ember?
+      choose
+        choice if you have the honey bread: Honey bread. It was a gift to me, so I'll give it to you.
+          you lose the honey bread
+          add 1 to kindness
+          The Lady of the Ford: A gift passed on is worth twice a gift kept. Accepted.
+          say: She dips her hand into the river and lifts out a coal that burns blue at its edges. With it comes a tiny silver bell, tangled in weed.
+          you get the river ember
+          you get the silver bell
+          add 1 to embers
+          put out the shrine
+          remember the lady gave her ember
+          The Lady of the Ford: The bell is for the Watcher on the peak. It only wakes for things that ring true. Bram knows the way upriver.
+        choice: My fear. I've been scared all night. You can have it.
+          add 1 to courage
+          The Lady of the Ford: Fear is heavy. The river will carry it to the sea. Accepted.
+          say: She dips her hand into the river and lifts out a coal that burns blue at its edges. With it comes a tiny silver bell, tangled in weed.
+          you get the river ember
+          you get the silver bell
+          add 1 to embers
+          put out the shrine
+          remember the lady gave her ember
+          The Lady of the Ford: The bell is for the Watcher on the peak. It only wakes for things that ring true. Bram knows the way upriver.
+        choice: Nothing. I have nothing to spare.
+          The Lady of the Ford: Then the river has nothing for you. Think again, lamp-carrier.
+
+  when you look at the shrine
+    if the lady gave her ember
+      say: The shrine is dark now, but the stones are still warm.
+    otherwise
+      say: An old stone shrine. On top, a blue light turns slowly, like something under water.

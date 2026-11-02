@@ -1,0 +1,101 @@
+# The Whispering Woods, north of the village: Pip, the toadstool ring,
+# and the great oak that keeps the woods' ember in its roots.
+
+place the woods
+  title: The Whispering Woods
+  the sky: night
+  the mist: thick
+  the ground: forest floor, 46 by 58 m
+  you come in at 0 23, facing 0
+
+  a great oak at 0 -12
+  a toadstool ring at -8 3, unlit
+  a wisp cloud called the wisps at -8 3, hidden
+  Pip at -6.4 5.6, facing 140
+
+  a way to the village at 0 26, turned 180
+  a way to the ford at 15 -22, turned -40
+
+  16 path stones in a line from 0 22 to 0 -6
+  10 path stones in a line from 2 -8 to 14 -20
+  46 pine trees between -22 -28 and 22 28
+  14 tall pines between -22 -28 and 22 28
+  6 birches between -18 -20 and 18 20
+  18 toadstools between -18 -24 and 18 24
+  5 big rocks between -20 -26 and 20 26
+  4 fallen logs between -16 -20 and 16 20
+
+  when you first arrive
+    say: The pines here are older than the village. Mist hangs between them like wet washing, and somewhere, a small voice is crying.
+
+  when you talk to Pip
+    if pip is home
+      Pip: You lit our ring! My whole family came back. The Warden says you have a kind light.
+    otherwise
+      Pip: Go away, big light. No. Wait. Don't go away.
+      Pip: I'm Pip. My family lives in the toadstool ring, but the ring went dark and they all blew away into the mist. I can't light it. I'm too small.
+      choose
+        choice: Let me try. My lantern still has a spark.
+          Pip: Really? It's just there. The circle of toadstools.
+        choice: I'm sorry, Pip. I have to find an ember.
+          Pip: The Warden has one, inside the great oak. But it doesn't like visitors. It doesn't like anybody.
+
+  when you use the toadstool ring
+    if pip is home
+      say: The toadstools glow softly. Wisps bob between them like dandelion seeds.
+    otherwise
+      say: You hold your lantern low. The spark leans out of it, as if it wants to jump.
+      light the toadstool ring
+      say: One by one the toadstools catch: blue, then green, then soft white. And out of the mist come tiny lights, dozens of them.
+      show the wisps
+      remember pip is home
+      add 1 to kindness
+      Pip: Mum! Dad! Everyone!
+      Pip: Thank you, big light. Listen. The Warden asks everyone the same question. Tell it the truth, even if the truth is that you were wrong.
+
+  when you talk to the great oak
+    if the warden gave its ember
+      The Warden: Go on, little flame. The woods will remember you.
+    otherwise
+      say: The bark shifts. Two knots open like sleepy eyes, and a voice like a creaking floor rolls out of the roots.
+      The Warden: Another lamp-carrier from the village. Your people took fire from these woods for a thousand years. Then they forgot to say thank you.
+      The Warden: Why should the woods give its ember to a village that forgot it?
+      choose
+        choice: Because we need it. Without fire, the Grey will take everyone.
+          The Warden: Need is not a reason. Everything that lives needs. Come back when you have a better answer.
+        choice: We did forget. I'm sorry. I'll make sure we remember.
+          The Warden: Truth. Rare enough in lamp-carriers. Take it, then, and don't forget again.
+          say: Deep in the roots, a coal glows red. It rolls into your palm, warm as a sleeping cat.
+          you get the woods ember
+          add 1 to embers
+          put out the great oak
+          remember the warden gave its ember
+        choice if pip is home: Pip says you're kinder than you sound.
+          The Warden: Ha! That wisp talks too much. But a lamp-carrier who stops for a lost wisp is one I can trust.
+          say: Deep in the roots, a coal glows red. It rolls into your palm, warm as a sleeping cat.
+          you get the woods ember
+          add 1 to embers
+          add 1 to kindness
+          put out the great oak
+          remember the warden gave its ember
+        choice: Then I'll take it. I'm not asking.
+          add 1 to courage
+          The Warden: Brave. And foolish. Try to pull it from my roots and see how far you get.
+          say: The roots tighten like fingers. You step back, quickly.
+
+  when you look at the great oak
+    if the warden gave its ember
+      say: The oak sleeps again. Where the ember was, the roots are curled around nothing, like a hand after letting go.
+    otherwise
+      say: The oldest tree you have ever seen. Down among its roots something glows red, slow as breathing.
+
+  when you leave for the ford
+    if the warden gave its ember
+      go to the ford
+    otherwise
+      say: You could go on to the river. But the oak's ember is right here, glowing in its roots.
+      choose
+        choice: Go on to the river anyway.
+          go to the ford
+        choice: Stay a while.
+          say: You turn back towards the great oak.

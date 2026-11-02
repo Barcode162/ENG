@@ -1,0 +1,37 @@
+# The best ending: Emberhollow at dawn, every lamp lit, everyone you met.
+
+place morning
+  title: Emberhollow, at dawn
+  the sky: dawn
+  the mist: none
+  the ground: moss, 46 by 46 m
+  you come in at 0 13, facing 0
+
+  a great hearth at 0 -2
+  Mira at -2.6 0.6, facing 30
+  Tobin at -1 2.2, facing 10
+  Old Bram at 2.4 1.4, facing -30
+  Ysolde at 3.6 -0.6, facing -60
+  Pip at -3.6 2.6, facing 40
+  Sorrel at 1 0.2, facing 0
+  a well at 6 2.4
+  a house at -9 -9, turned 35
+  a house at 9.5 -8.5, turned -30
+  a house at -12 4, turned 85
+  a house at 12.5 5.5, turned -95
+  a house at -4 -14, turned 5
+  4 lamp posts in a line from -6 -5.5 to 6 -5.5
+  2 lamp posts in a line from -2.2 8 to 2.2 8
+  14 path stones in a line from 0 12 to 0 -15
+  22 pine trees around 0 0, 19 to 23 m away
+  8 tall pines around 0 0, 21 to 24 m away
+
+  when you first arrive
+    say: You walk down the hill as the sky turns pink. Behind you the Hearthflame burns tall and gold, and every lamp in Emberhollow is lit.
+    Mira: You did it. Look at them all. Bram rowed up the river at first light. Even the hermit came down from the peak.
+    Tobin: I carried the first stick up! Well. The second. Mira carried the first.
+    Ysolde: My fire's in there too, you know. I brought it down the mountain in a pot.
+    Pip: And us! We're going to live in the lamps.
+    Sorrel: And tomorrow night, and the night after, someone will climb the hill again. That's the real fire.
+    say: The Grey is gone. The roofs steam in the early sun. Somewhere, someone is already baking honey bread.
+    the end: The Long Dawn

@@ -1,0 +1,69 @@
+# The story's own light words, on top of the engine's first words
+# (looped/words/first.looped). Same rules: every word is a few lines made
+# of other words. Change `lantern flame` here and your lantern changes.
+
+word lantern flame: a thing, a kind of light
+  gives light: 70 lumens, 2100 K, a ball 4 cm across
+  like: lantern, spark, wick
+
+word lamp flame: a thing, a kind of light
+  gives light: 160 lumens, 2200 K, a ball 8 cm across
+  flickering gently
+  like: street lamp, lamp
+
+word window glow: a thing, a kind of light
+  gives light: 90 lumens, 2300 K, a panel 0.7 by 0.6 m
+  breathing
+  like: window, glow
+
+word hearth fire: a thing, a kind of light
+  gives light: 1400 lumens, 1900 K, a ball 60 cm across
+  flickering
+  like: bonfire, blaze, hearth
+
+word camp fire: a thing, a kind of light
+  gives light: 380 lumens, 1900 K, a ball 30 cm across
+  flickering
+  like: campfire, fire pit
+
+word ember glow: a thing, a kind of light
+  gives light: 60 lumens, 1600 K, a ball 10 cm across
+  breathing slow
+  like: coal, ember
+
+word wisp light: a thing, a kind of light
+  gives light: 30 lumens, colour 0.45 0.75 1, a ball 10 cm across
+  breathing
+  like: wisp, firefly
+
+word toadstool glow: a thing, a kind of light
+  gives light: 45 lumens, colour 0.3 1 0.8, a ball 1 m across
+  breathing slow
+  like: mushroom, toadstool
+
+word spirit glow: a thing, a kind of light
+  gives light: 80 lumens, colour 0.5 0.75 1, a ball 40 cm across
+  breathing
+  like: ghost, lady, spirit
+
+word fox fire: a thing, a kind of light
+  gives light: 120 lumens, colour 1 0.4 0.12, a ball 20 cm across
+  flickering slow
+  like: fox, sorrel
+
+word river glow: a thing, a kind of light
+  gives light: 110 lumens, colour 0.35 0.65 1, a ball 15 cm across
+  breathing slow
+
+word watcher eyes: a thing, a kind of light
+  gives light: 120 lumens, colour 0.55 0.85 1, a panel 0.9 by 0.2 m
+  like: eyes, giant
+
+word star light: a thing, a kind of light
+  gives light: 120 lumens, 5200 K, a ball 20 cm across
+  breathing slow
+
+word waymark: a thing, a kind of light
+  gives light: 22 lumens, colour 0.55 0.8 1, a ball 8 cm across
+  breathing slow
+  like: sign, marker, path

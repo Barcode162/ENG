@@ -1,0 +1,93 @@
+# Frostpeak: snow, ice, a hermit's small fire, and the Watcher, a giant
+# of stone holding the peak's ember.
+
+place the peak
+  title: Frostpeak
+  the sky: grey
+  the mist: light
+  the ground: snow, 50 by 50 m
+  you come in at 0 19, facing 0
+
+  a stone giant called the Watcher at 0 -11, unlit
+  an ember stone at 0 -8.4
+  a tent at 9 6, turned -60
+  a campfire at 6.4 7.4
+  Ysolde at 5.4 9.2, facing 210
+
+  a way to the ford at 0 22, turned 180
+  a way to the hill at -18 -8, turned 70
+
+  10 ice spires around 0 -4, 14 to 19 m away
+  9 snow rocks between -20 -20 and 20 20
+  6 standing stones in a line from -9 -3 to 9 -3
+
+  when you first arrive
+    say: The path up from the river is steep and icy. At the top the wind drops to nothing, and the snow is very quiet.
+    say: In the middle of the peak sits a giant of stone with its knees drawn up. Beside a small tent, someone has kept a fire going.
+
+  when you talk to Ysolde
+    if met ysolde
+      Ysolde: Ring the bell, if you have one. The Watcher only wakes for something true.
+    otherwise
+      remember met ysolde
+      Ysolde: Ha! A climber. Sit by my fire. It's small, but it's mine, and the Grey doesn't like it.
+      Ysolde: You've come for the Watcher's ember, haven't you? It asks one riddle. Everyone gets it wrong.
+      choose
+        choice: Will you tell me the answer?
+          Ysolde: If I knew it, I'd have the ember. But I'll tell you what twenty years alone up here taught me. A fire kept to yourself is a lonely thing.
+        choice: Why do you live up here alone?
+          Ysolde: I came up to keep my fire safe from everyone. Twenty years. I've had a long time to wonder whether that was clever.
+          Ysolde: Thank you for asking. Nobody has asked me anything in a very long time.
+          add 1 to kindness
+
+  when you look at the Watcher
+    say: A giant of stone. Snow has piled on its shoulders for a hundred years. In front of it, on a block of stone, something burns as white as a star.
+
+  when you look at the ember stone
+    if the watcher gave its ember
+      say: The block of stone is empty, and the snow around it has melted into a perfect circle.
+    otherwise
+      say: The peak's ember, on a block of dark stone. When you reach for it, the air turns so cold your fingers ache. It isn't yours to take. Not yet.
+
+  when you talk to the Watcher
+    if the watcher gave its ember
+      The Watcher: GO WELL, LITTLE FIRE.
+    otherwise if you have the silver bell
+      say: You hold up the silver bell and ring it. The note is tiny, but the whole mountain seems to hear it.
+      light the Watcher
+      say: Snow slides off the giant's shoulders. Two eyes open, cold and blue.
+      The Watcher: WHO RINGS THE RIVER'S BELL? ANSWER ME, AND THE EMBER IS YOURS.
+      The Watcher: WHAT GROWS WHEN YOU SHARE IT, AND DIES WHEN YOU KEEP IT?
+      choose
+        choice: Gold.
+          The Watcher: GOLD KEPT IS STILL GOLD. NO.
+          put out the Watcher
+          say: The eyes close. Snow starts to settle again. You can ring the bell again when you are ready.
+        choice: A secret.
+          The Watcher: A SECRET SHARED IS A SECRET LOST. NO.
+          put out the Watcher
+          say: The eyes close. Snow starts to settle again. You can ring the bell again when you are ready.
+        choice: Fire.
+          The Watcher: FIRE. SHARE IT, THEN.
+          say: The block of stone cracks open with a sound like a bell. The ember rolls free, and snow melts in a circle around your feet.
+          you get the peak ember
+          add 1 to embers
+          hide the ember stone
+          remember the watcher gave its ember
+        choice if met ysolde: Fire. Kept alone, it's lonely. Shared, it can light a whole village.
+          The Watcher: THE HERMIT HAS TAUGHT YOU WELL. OR YOU HAVE TAUGHT HER. SHARE IT, THEN.
+          say: The block of stone cracks open with a sound like a bell. The ember rolls free, and snow melts in a circle around your feet.
+          you get the peak ember
+          add 1 to embers
+          add 1 to kindness
+          hide the ember stone
+          remember the watcher gave its ember
+    otherwise
+      say: You shout. You knock on the cold stone. The Watcher doesn't stir. It's waiting for some other kind of call.
+
+  when you leave for the hill
+    if embers is 0
+      say: The long path down to the Hearth hill. You've nothing to bring the Hearth yet.
+    otherwise
+      say: You follow the long path down the mountain's far side. Below, in the dark, the Hearth hill waits.
+      go to the hill
