@@ -1,0 +1,24 @@
+# The Last Ember: a story written in Looped Script.
+#
+# This file is the story itself: its title, the files that hold the rest,
+# where you start, the numbers it keeps, the things you can carry, and the
+# light you carry once you have the lantern. The places and what happens in
+# them are in the files it reads, one place a file.
+
+story The Last Ember
+  by: J Production
+  words from words.looped
+  read colours.looped, things.looped, people.looped
+  read village.looped, woods.looped, ford.looped, island.looped, peak.looped, hill.looped, morning.looped
+  you start in the village
+  keep count of embers
+  keep count of kindness
+  keep count of courage
+  a light when you have the old lantern: a lantern flame that flickers gently
+
+item old lantern: Mira's lantern, dented and warm. One spark still lives inside it.
+item honey bread: Still warm, wrapped in a cloth. Tobin's mother baked it for whoever climbs the hill.
+item silver bell: A bell no bigger than a thimble. It rings like rain on a roof.
+item woods ember: A coal from the roots of the great oak. It hums like a sleeping bee.
+item river ember: A coal that burns blue at its edges, cool and smooth as a stone from the ford.
+item peak ember: A coal so bright it makes your eyes water. Snow melts wherever you carry it.

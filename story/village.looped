@@ -1,0 +1,119 @@
+# Emberhollow, the village, on the longest night of the year.
+# Where things stand: x to the right, z towards you (metres); you come in
+# at the south edge, looking north (facing 0).
+
+place the village
+  title: Emberhollow
+  the sky: night
+  the mist: light
+  the ground: moss, 46 by 46 m
+  you come in at 0 13, facing 0
+
+  a great hearth called the cold hearth at 0 -2, unlit
+  Mira at -2.6 0.6, facing 30
+  Tobin at 7.4 4.2, facing -70
+  a well at 6 2.4
+
+  a house called Mira's house at -9 -9, turned 35
+  a house at 9.5 -8.5, turned -30
+  a house at -12 4, turned 85
+  a house at 12.5 5.5, turned -95
+  a house at -4 -14, turned 5
+  2 barrels in a line from -6.2 -6.6 to -5.5 -7.2
+  a bench at 3.6 1.2, turned -90
+
+  4 lamp posts in a line from -6 -5.5 to 6 -5.5, unlit
+  2 lamp posts in a line from -2.2 8 to 2.2 8, unlit
+  14 path stones in a line from 0 12 to 0 -15
+  9 path stones in a line from -1.5 -1 to -15 -1
+
+  a way to the woods at 0 -17
+  a way to the hill at -17 -1, turned 90
+
+  22 pine trees around 0 0, 19 to 23 m away
+  8 tall pines around 0 0, 21 to 24 m away
+  7 rocks between -16 -16 and 16 16
+
+  when you first arrive
+    say: The longest night of the year. Every lamp in Emberhollow went out at once, and the Hearthflame on the hill went out with them.
+    say: Grey mist is already creeping between the houses. Old Mira, the lamplighter, is waiting by the cold hearth.
+
+  when you talk to Mira
+    if not met mira
+      remember met mira
+      Mira: There you are. Look at it. Sixty winters I have tended these lamps, and I have never seen them all go dark.
+      Mira: It's the Hearthflame. When it dies, every fire it ever lit dies with it. And the Grey comes in behind.
+      choose
+        choice: What can we do?
+          Mira: The old songs say the Hearthflame was born from three embers: one from the woods, one from the river, one from the peak.
+        choice: Is it my fault? I was supposed to carry wood up the hill last night.
+          Mira: Every family was supposed to carry wood up the hill. For years now, nobody has. If it's anyone's fault, it's all of ours.
+          add 1 to kindness
+      Mira: Bring the three embers to the Hearth on the hill, and the flame may wake again.
+      Mira: Take my lantern. The spark inside is the last fire left in Emberhollow. Guard it.
+      you get the old lantern
+      say: You take the lantern. Its small light pushes the mist back a step.
+      choose
+        choice: I'll bring the fire back. I promise.
+          add 1 to courage
+          Mira: I know you will. The woods are north, past the last pines.
+        choice: Why me? I'm only your apprentice.
+          Mira: Because you're the one who still sings the old songs. Go north, into the woods.
+    otherwise if embers is 3
+      Mira: All three! I can feel the warmth from here. Go up the hill, before the Grey swallows the square.
+    otherwise if embers is at least 1
+      Mira: You found one! Can you feel how the mist pulls back from it?
+      choose
+        choice: Should I take it to the hill now?
+          Mira: A small fire is better than none. But three embers would make a flame to last a hundred years. It's your choice.
+        choice: I'll keep looking.
+          Mira: Then go carefully. The river is past the woods, and the peak is up the river.
+    otherwise
+      Mira: North, into the woods. And keep that spark dry.
+
+  when you talk to Tobin
+    if tobin is brave
+      Tobin: When the fire comes back, can I carry the first stick up the hill?
+    otherwise
+      Tobin: I'm not scared. I'm just standing very close to the well. In case the dark falls in.
+      choose
+        choice if you have the old lantern: It's all right to be scared. Here, hold the lantern a moment.
+          say: Tobin wraps both hands around the lantern. Slowly his shoulders come down from his ears.
+          Tobin: It's warm. Like Mum's oven. Oh! Mum baked this for whoever climbs the hill. I think that's you.
+          you get the honey bread
+          add 1 to kindness
+          remember tobin is brave
+        choice: It's all right to be scared. I am too.
+          Tobin: You are? But you're nearly grown up.
+          say: He thinks about it for a long time.
+          Tobin: Mum baked bread for whoever climbs the hill. If you're scared too, you should have it. Being scared makes you hungry.
+          you get the honey bread
+          add 1 to kindness
+          remember tobin is brave
+        choice: Go home, Tobin. This is no night for children.
+          Tobin: You're not much older than me.
+          say: He doesn't move. Neither does the mist.
+
+  when you look at the well
+    say: Your light shivers on black water, far below. For a moment you think you see a second light down there, looking back up at you.
+
+  when you look at the cold hearth
+    if embers is 0
+      say: The village hearth. Every evening its coals were lit from the Hearthflame on the hill. Tonight it's cold stone and ash.
+    otherwise
+      say: The ember you carry makes the ashes stir, as if they remember being fire.
+
+  when you look at Mira's house
+    say: Mira's house. Through the window you can see her candles, every one burned down to a stub.
+
+  when you leave for the woods
+    if you have the old lantern
+      go to the woods
+    otherwise
+      say: The mist beyond the pines is as thick as wool. You won't get ten steps without a light. Mira is waiting by the hearth.
+
+  when you leave for the hill
+    if embers is 0
+      say: The hill path climbs straight into the Grey. Without an ember there is nothing to give the Hearth.
+    otherwise
+      go to the hill

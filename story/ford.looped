@@ -1,0 +1,71 @@
+# The Silver Ford: a wide black river, Old Bram and his dark ferry, and
+# on an island in the middle, the Lady's shrine glowing blue.
+
+place the ford
+  title: The Silver Ford
+  the sky: night
+  the mist: light
+  the ground: pebbles, 50 by 44 m
+  you come in at 10 18, facing -30
+
+  a river at 0 -8
+  a broken bridge at -8 -8, turned 90
+  a ferry boat at 4 -1.6, turned 90
+  a ferry lantern at 1.8 0.6, unlit
+  Old Bram at 3 2.2, facing 160
+  a shrine called the far shrine at 3 -19
+
+  a way to the woods at 14 20, turned 140
+  a way to the peak at -20 6, turned 90
+
+  20 reeds in a line from -24 -1.8 to 24 -1.8
+  12 reeds between -22 -2.5 and 22 -1
+  12 rocks between -22 1 and 22 20
+  10 pine trees between -24 6 and 24 21
+  6 tall pines between -24 -15 and 24 -21
+
+  when you first arrive
+    say: The woods open onto the river. It's wide and fast and black, and the moon lies on it in broken pieces.
+    say: Out in the middle, on a little island, something glows blue.
+
+  when you talk to Old Bram
+    if bram will row
+      Old Bram: In you get. Mind the oar.
+      go to the island
+    otherwise
+      Old Bram: Ferry's closed. Lantern's out. Nobody crosses the Silver Ford in the dark. Not since my grandmother's time.
+      choose
+        choice if you have the honey bread: I have honey bread. Would you row me across for it?
+          say: Bram sniffs the cloth. His whole face changes.
+          Old Bram: Is that Hesta's? I haven't eaten since the lamps went out. Fine. Fine! Hop in.
+          you lose the honey bread
+          remember bram will row
+          go to the island
+        choice: Your lantern is out? Let me light it.
+          Old Bram: With that little spark? Go on, then. It's on the post by the boat.
+        choice: What's on the island?
+          Old Bram: The Lady's shrine. She keeps the river's ember. Folk used to row out with gifts for her. Then they stopped.
+
+  when you use the ferry lantern
+    if bram will row
+      say: The ferry lantern burns steady. Bram is waiting by the boat.
+    otherwise
+      light the ferry lantern
+      say: The spark leaps from your lantern to Bram's. The wick catches with a little cough.
+      Old Bram: Well, I'll be. A light on the ford again. I owe you a crossing. Talk to me when you're ready.
+      remember bram will row
+      add 1 to kindness
+
+  when you look at the river
+    say: Black water, moving fast. The old bridge broke in a flood before you were born, and nobody ever mended it.
+
+  when you leave for the peak
+    if you have the silver bell
+      go to the peak
+    otherwise
+      Old Bram: Up the mountain? Nothing up there but snow, a mad old hermit, and a stone giant that never wakes.
+      choose
+        choice: Climb anyway.
+          go to the peak
+        choice: Maybe later.
+          Old Bram: Wise.

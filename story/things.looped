@@ -1,0 +1,259 @@
+# The kinds of things in the story, each made of shapes:
+#   a box W by D by H, a roof W by D by H (wide, deep, high),
+#   a post, a cone or a disc ACROSS by HIGH, a ball ACROSS (or across by high).
+# After commas: how far up, `at x y z` (right, up, towards you), `turned`,
+# its colour, `glowing <colour>` (only while the thing is lit), and
+# `only when lit` (gone while it's out, like a flame).
+# `a light …: <light words>` gives light (the words: words.looped).
+# `blocks 1 m` keeps you that far away; `blocks like a wall` keeps you off
+# its whole shape; `you can walk through it`.
+
+# ---- The village ----
+
+kind house
+  a box 4.2 by 3.6 by 2.6 m, plaster
+  a roof 4.8 by 4.2 by 1.7 m, 2.6 m up, thatch
+  a box 0.5 by 0.5 by 1.4 m, at 1.2 3.2 -0.7, stone
+  a box 1 by 0.1 by 1.8 m, at 0 0 1.81, dark oak
+  a box 0.8 by 0.1 by 0.7 m, at -1.3 1.1 1.81, glowing window gold
+  a box 0.8 by 0.1 by 0.7 m, at 1.3 1.1 1.81, glowing window gold
+  a light at 0 1.3 2.3: a window glow
+  blocks like a wall
+
+kind lamp post
+  a post 0.14 by 2.7 m, iron
+  a box 0.34 by 0.34 by 0.44 m, 2.7 m up, iron
+  a box 0.26 by 0.26 by 0.34 m, 2.75 m up, glowing lamp gold
+  a light 2.95 m up: a lamp flame
+  blocks 0.3 m
+
+kind great hearth
+  a post 3.4 by 0.6 m, dark stone
+  a post 2.8 by 0.75 m, stone
+  a disc 2.4 by 0.05 m, 0.75 m up, ash
+  a box 1.6 by 0.25 by 0.25 m, at 0 0.8 0, turned 30, dark oak
+  a box 1.6 by 0.25 by 0.25 m, at 0 0.8 0, turned -40, dark oak
+  a cone 1.5 by 1.8 m, 0.8 m up, glowing fire, only when lit
+  a cone 0.9 by 2.5 m, 0.8 m up, glowing lamp gold, only when lit
+  a light 1.5 m up: a hearth fire
+  blocks 1.8 m
+
+kind hearth bowl
+  a post 7 by 0.5 m, dark stone
+  a post 5.6 by 0.5 m, 0.5 m up, stone
+  a post 4.2 by 0.9 m, 1 m up, dark stone
+  a disc 3.6 by 0.05 m, 1.9 m up, ash
+  a cone 3 by 3 m, 1.9 m up, glowing fire, only when lit
+  a cone 1.8 by 4.2 m, 1.9 m up, glowing lamp gold, only when lit
+  a light 3.2 m up: a very bright hearth fire
+  blocks 3.4 m
+
+kind well
+  a post 1.5 by 0.9 m, stone
+  a disc 1.15 by 0.02 m, 0.89 m up, water
+  a post 0.14 by 2.1 m, at -0.65 0 0, oak
+  a post 0.14 by 2.1 m, at 0.65 0 0, oak
+  a roof 1.9 by 1.3 by 0.6 m, 2.05 m up, thatch
+  blocks 0.9 m
+
+kind barrel (barrels)
+  a post 0.6 by 0.9 m, oak
+  a disc 0.62 by 0.06 m, 0.4 m up, iron
+  blocks 0.35 m
+
+kind bench (benches)
+  a box 1.6 by 0.4 by 0.08 m, 0.42 m up, oak
+  a box 0.1 by 0.36 by 0.42 m, at -0.65 0 0, dark oak
+  a box 0.1 by 0.36 by 0.42 m, at 0.65 0 0, dark oak
+  blocks 0.6 m
+
+kind path stone
+  a disc 0.75 by 0.02 m, dirt
+  you can walk through it
+
+# ---- Trees and stones ----
+
+kind pine tree
+  a post 0.4 by 1.3 m, bark
+  a cone 2.8 by 2.6 m, 1 m up, pine
+  a cone 2.1 by 2.3 m, 2.5 m up, dark pine
+  a cone 1.3 by 1.9 m, 3.9 m up, pine
+  blocks 0.5 m
+
+kind tall pine (tall pines)
+  a post 0.5 by 2.2 m, bark
+  a cone 3.4 by 3.2 m, 1.8 m up, dark pine
+  a cone 2.6 by 3 m, 3.6 m up, pine
+  a cone 1.6 by 2.6 m, 5.4 m up, dark pine
+  blocks 0.6 m
+
+kind birch (birches)
+  a post 0.25 by 3.4 m, cream
+  a ball 2.2 by 2.6 m, at 0 3.2 0, old leaf
+  blocks 0.3 m
+
+kind rock
+  a ball 1.3 by 0.8 m, stone
+  blocks 0.5 m
+
+kind big rock
+  a ball 3.2 by 2 m, mossy stone
+  a ball 1.8 by 1.4 m, at 1.1 0 0.6, stone
+  blocks 1.6 m
+
+kind standing stone
+  a box 0.9 by 0.5 by 2.8 m, dark stone
+  blocks 0.5 m
+
+kind great oak
+  a post 2.4 by 5 m, bark
+  a box 4.5 by 0.6 by 0.5 m, turned 20, bark
+  a box 4.2 by 0.6 by 0.45 m, turned 110, bark
+  a ball 11 by 6.5 m, at 0 4.5 0, leaf
+  a ball 7 by 4.5 m, at 2.5 7 1, old leaf
+  a ball 0.5 by 0.4 m, at 0 0.15 1.2, glowing ember red, only when lit
+  a box 0.45 by 0.1 by 0.25 m, at -0.45 2.6 1.18, glowing ember red, only when lit
+  a box 0.45 by 0.1 by 0.25 m, at 0.45 2.6 1.18, glowing ember red, only when lit
+  a light at 0 0.4 1.6: an ember glow
+  blocks 1.5 m
+
+kind toadstool (toadstools)
+  a post 0.1 by 0.28 m, cream
+  a cone 0.38 by 0.16 m, 0.26 m up, toadstool red
+  you can walk through it
+
+kind toadstool ring
+  a post 0.12 by 0.3 m, at 1.4 0 0, cream
+  a cone 0.45 by 0.2 m, at 1.4 0.28 0, glowing toadstool teal
+  a post 0.12 by 0.3 m, at -1.4 0 0, cream
+  a cone 0.45 by 0.2 m, at -1.4 0.28 0, glowing toadstool teal
+  a post 0.12 by 0.3 m, at 0 0 1.4, cream
+  a cone 0.45 by 0.2 m, at 0 0.28 1.4, glowing toadstool teal
+  a post 0.12 by 0.3 m, at 0 0 -1.4, cream
+  a cone 0.45 by 0.2 m, at 0 0.28 -1.4, glowing toadstool teal
+  a post 0.12 by 0.3 m, at 1 0 1, cream
+  a cone 0.45 by 0.2 m, at 1 0.28 1, glowing toadstool teal
+  a post 0.12 by 0.3 m, at -1 0 -1, cream
+  a cone 0.45 by 0.2 m, at -1 0.28 -1, glowing toadstool teal
+  a post 0.12 by 0.3 m, at 1 0 -1, cream
+  a cone 0.45 by 0.2 m, at 1 0.28 -1, glowing toadstool teal
+  a post 0.12 by 0.3 m, at -1 0 1, cream
+  a cone 0.45 by 0.2 m, at -1 0.28 1, glowing toadstool teal
+  a light 0.5 m up: a toadstool glow
+  you can walk through it
+
+kind wisp cloud
+  a ball 0.12 m, at 0.5 1.2 0.3, glowing wisp blue
+  a ball 0.1 m, at -0.6 1.5 -0.2, glowing wisp blue
+  a ball 0.14 m, at 0.2 1.9 -0.6, glowing wisp blue
+  a ball 0.1 m, at -0.3 0.9 0.7, glowing wisp blue
+  a ball 0.12 m, at 0.8 1.6 -0.5, glowing wisp blue
+  a ball 0.09 m, at -0.9 1.1 0.4, glowing wisp blue
+  a ball 0.11 m, at 0 2.3 0.2, glowing wisp blue
+  a light 1.5 m up: a wisp light
+  you can walk through it
+
+# ---- The river ----
+
+kind river
+  a box 70 by 11 by 0.06 m, water
+  blocks like a wall
+
+kind pool
+  a box 12 by 12 by 0.06 m, water
+  blocks like a wall
+
+kind reeds
+  a post 0.05 by 1.3 m, at 0.1 0 0, reed
+  a post 0.05 by 1.1 m, at -0.15 0 0.1, reed
+  a post 0.05 by 1.5 m, at 0 0 -0.12, reed
+  a post 0.05 by 0.9 m, at 0.2 0 0.15, reed
+  you can walk through it
+
+kind ferry boat
+  a box 1.6 by 3.6 by 0.5 m, dark oak
+  a box 1.3 by 3.2 by 0.08 m, 0.45 m up, oak
+  a post 0.08 by 2.6 m, at 0.5 0.5 1.2, oak
+  blocks like a wall
+
+kind ferry lantern
+  a post 0.12 by 1.8 m, dark oak
+  a box 0.3 by 0.3 by 0.38 m, 1.8 m up, iron
+  a box 0.22 by 0.22 by 0.3 m, 1.84 m up, glowing lamp gold
+  a light 2 m up: a lamp flame
+  blocks 0.3 m
+
+kind broken bridge
+  a post 0.4 by 2 m, at -2 -0.8 0, dark oak
+  a post 0.4 by 1.6 m, at 1.5 -0.8 0.2, dark oak
+  a box 1.4 by 4 by 0.15 m, at -2 0.9 0, turned 8, oak
+  a box 1.4 by 2.4 by 0.15 m, at 1.5 0.6 0, turned -12, oak
+  blocks like a wall
+
+kind shrine
+  a box 1.4 by 1.4 by 0.9 m, stone
+  a box 1.1 by 1.1 by 0.3 m, 0.9 m up, dark stone
+  a post 0.35 by 1.4 m, 1.2 m up, stone
+  a ball 0.45 m, at 0 2.6 0, glowing river blue, only when lit
+  a light 2.85 m up: a river glow
+  blocks 1 m
+
+# ---- The peak ----
+
+kind ice spire
+  a cone 1.4 by 4.5 m, ice
+  a cone 0.8 by 2.6 m, at 0.7 0 0.3, ice
+  blocks 0.7 m
+
+kind snow rock
+  a ball 2.2 by 1.2 m, dark stone
+  a ball 1.9 by 0.6 m, at 0 0.9 0, snow
+  blocks 1 m
+
+kind tent
+  a cone 3 by 2.6 m, canvas
+  a box 0.8 by 0.1 by 1.2 m, at 0 0 1.3, turned 0, dark oak
+  blocks 1.5 m
+
+kind campfire
+  a post 1.1 by 0.2 m, dark stone
+  a box 0.9 by 0.16 by 0.16 m, at 0 0.2 0, turned 20, dark oak
+  a box 0.9 by 0.16 by 0.16 m, at 0 0.2 0, turned -50, dark oak
+  a cone 0.6 by 0.8 m, 0.25 m up, glowing fire, only when lit
+  a light 0.7 m up: a camp fire
+  blocks 0.7 m
+
+kind stone giant
+  a box 3.4 by 2.4 by 3.4 m, dark stone
+  a box 1.1 by 1.6 by 2 m, at -1.9 0 0.6, stone
+  a box 1.1 by 1.6 by 2 m, at 1.9 0 0.6, stone
+  a box 2.6 by 1.6 by 1.6 m, at 0 3.4 0, stone
+  a box 3.6 by 2.4 by 0.3 m, at 0 3.4 0, snow
+  a box 2.1 by 1.6 by 1.7 m, at 0 5 0.1, dark stone
+  a box 2.2 by 1.7 by 0.25 m, at 0 6.7 0.1, snow
+  a box 0.5 by 0.1 by 0.2 m, at -0.5 5.9 0.91, glowing waymark blue
+  a box 0.5 by 0.1 by 0.2 m, at 0.5 5.9 0.91, glowing waymark blue
+  a light at 0 5.9 1.4: the watcher eyes
+  blocks 2.6 m
+
+kind ember stone
+  a box 0.7 by 0.7 by 0.5 m, dark stone
+  a ball 0.4 m, 0.45 m up, glowing star white
+  a light 0.9 m up: a star light
+  blocks 0.5 m
+
+# ---- The hill ----
+
+kind fallen log (fallen logs)
+  a post 0.45 by 2.6 m, at 0 0.22 0, bark
+  you can walk through it
+
+# ---- The way to another place ----
+
+kind way
+  a post 0.22 by 2.3 m, at -0.9 0 0, mossy stone
+  a post 0.22 by 2.3 m, at 0.9 0 0, mossy stone
+  a box 2.3 by 0.3 by 0.3 m, 2.3 m up, mossy stone
+  a ball 0.18 m, at 0 2.7 0, glowing waymark blue
+  a light 2.8 m up: a waymark
+  you can walk through it

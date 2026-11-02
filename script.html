@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0E0906">
+<title>The Script</title>
+<style>
+  :root { --bg: #0E0906; --text: #F6EBDD; --text-2: #C2AC92; --text-3: #7F6B57; --accent: #F4A64A; --edge: inset 0 0 0 1px rgba(255,214,170,.1); }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font-family: -apple-system, system-ui, sans-serif; }
+  header { padding: calc(env(safe-area-inset-top) + 22px) 16px 8px; max-width: 900px; margin: 0 auto; }
+  h1 { font-family: "Iowan Old Style", Palatino, Georgia, serif; font-weight: 600; font-size: 32px; margin: 0 0 6px; color: #FFE2B8; }
+  header p { color: var(--text-2); margin: 0 0 14px; line-height: 1.5; font-size: 15px; }
+  a { color: var(--accent); }
+  nav { position: sticky; top: 0; z-index: 2; background: rgba(14,9,6,.92); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+    display: flex; gap: 8px; overflow-x: auto; padding: 10px 16px; border-bottom: 1px solid rgba(255,225,190,.08); }
+  nav button { flex: none; font: inherit; font-size: 14px; color: var(--text-2); background: rgba(255,220,180,.07); border: 0; border-radius: 999px; padding: 8px 14px; box-shadow: var(--edge); }
+  nav button.on { background: linear-gradient(135deg, #F8BF68, #EC7F34); color: #1E1206; font-weight: 700; }
+  main { max-width: 900px; margin: 0 auto; padding: 14px 16px 60px; }
+  pre { margin: 0; font: 13px/1.6 ui-monospace, Menlo, Consolas, monospace; white-space: pre-wrap; word-break: break-word; }
+  .ln { display: inline-block; width: 2.6em; color: var(--text-3); user-select: none; -webkit-user-select: none; }
+  .c { color: #7F6B57; font-style: italic; }
+  .k { color: #F4A64A; font-weight: 700; }
+  .w { color: #E8C39A; }
+  .who { color: #8FD3C1; font-weight: 700; }
+  .t { color: #F6EBDD; }
+  .n { color: #B9A6F2; }
+</style>
+</head>
+<body>
+<header>
+  <h1>The Script</h1>
+  <p>The whole of <i>The Last Ember</i>, as written in Looped Script: the places, the people, every line they say and every choice. The game reads these files as they are. <a href="./">Back to the game</a></p>
+</header>
+<nav id="tabs"></nav>
+<main><pre id="code">Loading…</pre></main>
+<script>
+'use strict';
+const files = ['story.looped', 'village.looped', 'woods.looped', 'ford.looped', 'island.looped', 'peak.looped', 'hill.looped', 'morning.looped',
+  'people.looped', 'things.looped', 'colours.looped', 'words.looped'];
+const keys = /^(\s*)(story|place|person|kind|item|colour|word|when|if|otherwise if|otherwise|choose|choice if|choice|remember|forget|set|add|subtract|you get|you lose|go to|light|put out|show|hide|the end|stop|say|keep count of|read|words from|you start in|you come in at|the sky|the ground|the mist|title|about|by)\b/;
+const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+function paint(line) {
+  const hash = line.indexOf('#');
+  if (/^\s*#/.test(line)) return '<span class="c">' + esc(line) + '</span>';
+  const colon = line.indexOf(':');
+  let head = colon >= 0 && (hash < 0 || colon < hash) ? line.slice(0, colon + 1) : line;
+  let rest = head === line ? '' : line.slice(colon + 1);
+  let out;
+  const m = head.match(keys);
+  if (m) out = esc(m[1]) + '<span class="k">' + esc(m[2]) + '</span>' + paintWords(head.slice(m[0].length));
+  else if (colon >= 0 && rest) out = '<span class="who">' + esc(head) + '</span>';
+  else out = paintWords(head);
+  if (rest) out += /^(\s*(the sky|the ground|the mist|colour|a light))/.test(head) || /^\s*(colour|word)/.test(head) ? paintWords(rest) : '<span class="t">' + esc(rest) + '</span>';
+  return out;
+}
+function paintWords(s) { return esc(s).replace(/(-?\d+(\.\d+)?)/g, '<span class="n">$1</span>').replace(/^/, '<span class="w">') + '</span>'; }
+async function show(name) {
+  document.querySelectorAll('nav button').forEach((b) => b.classList.toggle('on', b.textContent === name.replace('.looped', '')));
+  const r = await fetch('story/' + name, { cache: 'no-cache' });
+  const text = r.ok ? await r.text() : 'Not found';
+  document.getElementById('code').innerHTML = text.split('\n').map((l, i) => '<span class="ln">' + (i + 1) + '</span>' + paint(l)).join('\n');
+  scrollTo(0, 0);
+}
+for (const f of files) {
+  const b = document.createElement('button');
+  b.textContent = f.replace('.looped', '');
+  b.onclick = () => show(f);
+  document.getElementById('tabs').appendChild(b);
+}
+show('story.looped');
+</script>
+</body>
+</html>
