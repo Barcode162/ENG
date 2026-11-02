@@ -18,6 +18,7 @@
 
 #include "game/mesh.h"
 #include "game/shader.h"
+#include "game/sun.h"
 #include "looped/draw/draw.h"
 #include "looped/math.h"
 #include "looped/world/loop.h"
@@ -65,6 +66,13 @@ struct Game {
   std::unique_ptr<story::Runner> run;
   Buffers place, sky, ground;
   std::unique_ptr<terrain::Land> land;  // the place's land, when it has one
+  // The real light (J122.1): the time of day, the sun's shadow maps, the eye.
+  draw::Handle shadowPipe = 0, shadowMap[2] = {0, 0}, blank = 0;
+  float hours = 15.5f;
+  bool timeSet = false;
+  bool on[5] = {true, true, true, true, true};  // shadows, sun, sky light, eyes adapt, the real light
+  float exposure = 1, lux = 0;
+  bool exposureSet = false;
   std::unique_ptr<terrain::LandDraw> landDraw;
   std::vector<PersonDraw> people;
   uint32_t built = 0xffffffff;
@@ -120,7 +128,18 @@ void rebuild() {
       g.land = std::make_unique<terrain::Land>(terrain::shapeOf(here()));
       g.landDraw = std::make_unique<terrain::LandDraw>(*g.land);
     }
-    game::addSky(s, here().sky, 1234u + static_cast<uint32_t>(g.skyFor), g.land ? 7000.0f : 150.0f);
+    if (g.land) {
+      // The real sky is worked out in the shader; the dome only carries its stars.
+      story::Sky black = here().sky;
+      black.top = black.horizon = Vec3{0, 0, 0}, black.stars = true;
+      game::addSky(s, black, 1234u + static_cast<uint32_t>(g.skyFor), 7000.0f);
+      if (!g.timeSet) {
+        const std::string& n = here().skyName;
+        g.hours = n == "dawn" ? 6.4f : n == "dusk" ? 18.5f : n == "night" ? 23.0f : 15.5f;
+      }
+    } else {
+      game::addSky(s, here().sky, 1234u + static_cast<uint32_t>(g.skyFor), 150.0f);
+    }
     upload(g.sky, s);
     // The people here, each drawn on its own so they can turn to you.
     g.people.clear();
@@ -279,6 +298,25 @@ void mul(const float* a, const float* b, float* o) {
     }
 }
 
+// The view from the sun: a box `r` metres around `centre` (snapped to its
+// texels, so shadows don't shimmer as you walk), `depth` metres deep.
+void sunView(Vec3 centre, Vec3 sunDir, float r, float depth, float size, bool zeroToOne, float* out) {
+  const Vec3 f = -sunDir;
+  const Vec3 upHint = std::fabs(f.y) > 0.99f ? Vec3{0, 0, 1} : Vec3{0, 1, 0};
+  const Vec3 right = normalize(cross(f, upHint)), up = cross(right, f);
+  const float texel = 2 * r / size;
+  const float cx = dot(centre, right), cy = dot(centre, up);
+  centre = centre + right * (std::round(cx / texel) * texel - cx) + up * (std::round(cy / texel) * texel - cy);
+  const Vec3 eye = centre - f * (depth / 2);
+  const float view[16] = {right.x, up.x, -f.x, 0, right.y, up.y, -f.y, 0, right.z, up.z, -f.z, 0,
+                          -dot(right, eye), -dot(up, eye), dot(f, eye), 1};
+  float proj[16] = {};
+  proj[0] = 1 / r, proj[5] = 1 / r, proj[15] = 1;
+  if (zeroToOne) proj[10] = -1 / depth, proj[14] = 0;
+  else proj[10] = -2 / depth, proj[14] = -1;
+  mul(proj, view, out);
+}
+
 void frame() {
   if (!g.ready || !g.run) return;
   const double now = emscripten_get_now() / 1000.0;
@@ -331,13 +369,29 @@ void frame() {
     upload(g.ground, lm);
   }
   mul(proj, view, u.viewProj);
-  const story::Sky& sky = pl.sky;
+  story::Sky sky = pl.sky;
+  const bool real = g.land && g.on[4];
   u.eye[0] = g.eye.x, u.eye[1] = g.eye.y, u.eye[2] = g.eye.z, u.eye[3] = sky.exposure;
   u.offset[3] = 1.4f;
   u.fog[0] = sky.horizon.x, u.fog[1] = sky.horizon.y, u.fog[2] = sky.horizon.z, u.fog[3] = pl.mist;
   u.ambient[0] = sky.ambient.x, u.ambient[1] = sky.ambient.y, u.ambient[2] = sky.ambient.z;
   u.moonDir[0] = sky.moonDir.x, u.moonDir[1] = sky.moonDir.y, u.moonDir[2] = sky.moonDir.z;
   u.moon[0] = sky.moon.x, u.moon[1] = sky.moon.y, u.moon[2] = sky.moon.z;
+  game::SkyNow now_{};
+  if (real) {
+    now_ = game::skyAt(g.hours, 0.12f);
+    const Vec3 sun = g.on[1] ? now_.sunLux : Vec3{0, 0, 0}, skyl = g.on[2] ? now_.skyLux : Vec3{0.002f, 0.002f, 0.003f};
+    const Vec3 bounce = g.on[2] ? now_.bounce : Vec3{0, 0, 0};
+    sky.moonDir = now_.sunDir;
+    u.ambient[0] = skyl.x, u.ambient[1] = skyl.y, u.ambient[2] = skyl.z, u.ambient[3] = 1;
+    u.moonDir[0] = now_.sunDir.x, u.moonDir[1] = now_.sunDir.y, u.moonDir[2] = now_.sunDir.z;
+    u.moon[0] = sun.x, u.moon[1] = sun.y, u.moon[2] = sun.z;
+    u.moon[3] = g.on[0] && g.on[1] && now_.sunDir.y > 0.02f ? 1.0f : 0.0f;
+    u.zenith[0] = now_.zenith.x, u.zenith[1] = now_.zenith.y, u.zenith[2] = now_.zenith.z;
+    u.horizon[0] = now_.horizon.x, u.horizon[1] = now_.horizon.y, u.horizon[2] = now_.horizon.z;
+    u.sunGlow[0] = now_.glow.x, u.sunGlow[1] = now_.glow.y, u.sunGlow[2] = now_.glow.z, u.sunGlow[3] = now_.stars * 400;
+    u.bounce[0] = bounce.x, u.bounce[1] = bounce.y, u.bounce[2] = bounce.z;
+  }
   std::vector<Light> lights;
   gather(lights, now);
   std::sort(lights.begin(), lights.end(), [](const Light& a, const Light& b) {
@@ -363,14 +417,57 @@ void frame() {
     u.lp[i][0] = l.at.x, u.lp[i][1] = l.at.y, u.lp[i][2] = l.at.z, u.lp[i][3] = std::sqrt(l.cd / 0.0015f);
     u.lc[i][0] = l.colour.x * l.cd, u.lc[i][1] = l.colour.y * l.cd, u.lc[i][2] = l.colour.z * l.cd;
   }
+  // The eyes: the light around you, from the sky, the sun and the nearest lamps.
+  if (real) {
+    float lux = (u.ambient[0] + u.ambient[1] + u.ambient[2]) / 3 + (u.moon[0] + u.moon[1] + u.moon[2]) / 3 * std::max(u.moonDir[1], 0.0f) * 0.7f;
+    if (g.on[3])
+      for (size_t i = 0; i < n; ++i) lux += lights[i].cd / std::max(1.0f, lengthSq(lights[i].at - g.eye)) * 0.5f;
+    g.lux = lux;
+    const float want = game::exposureFor(lux);
+    if (!g.exposureSet || !g.on[3]) g.exposure = want, g.exposureSet = true;
+    else g.exposure = std::exp(std::log(g.exposure) + (std::log(want) - std::log(g.exposure)) * std::min(1.0f, dt * 1.2f));
+    u.eye[3] = g.exposure;
+  }
+  // The sun's shadow: two maps, sharp near you and wide for the hills.
+  const bool zeroToOne = g.dev->backend() == draw::Backend::kWebGpu;
+  constexpr float kShadowSize = 1024;
+  if (u.moon[3] > 0.5f) {
+    const float radius[2] = {40, 350};
+    float* mats[2] = {u.shadow0, u.shadow1};
+    const Vec3 sunDir{u.moonDir[0], u.moonDir[1], u.moonDir[2]};
+    const float fwdX = std::sin(yr), fwdZ = -std::cos(yr);
+    for (int c = 0; c < 2; ++c) {
+      // Centred a little ahead of you, where you look.
+      const Vec3 centre = g.eye + Vec3{fwdX, 0, fwdZ} * (radius[c] * 0.5f);
+      sunView(centre, sunDir, radius[c], 3000, kShadowSize, zeroToOne, mats[c]);
+      const float clearDepth[4] = {1, 0, 0, 1};
+      if (!g.dev->beginTarget(g.shadowMap[c], clearDepth)) continue;
+      game::Uniforms su{};
+      std::memcpy(su.viewProj, mats[c], 64);
+      if (g.ground.count) g.dev->drawIndexed(g.shadowPipe, g.ground.vb, g.ground.ib, g.ground.count, &su, sizeof su, nullptr, 0);
+      g.dev->drawIndexed(g.shadowPipe, g.place.vb, g.place.ib, g.place.count, &su, sizeof su, nullptr, 0);
+      for (const auto& d : g.people) {
+        if (g.run->hidden(d.thing)) continue;
+        const story::Placed& th = pl.things[static_cast<size_t>(d.thing)];
+        const float a = d.yaw * 0.017453292f, ca = std::cos(a), sa = std::sin(a);
+        const float model[16] = {ca, 0, -sa, 0, 0, 1, 0, 0, sa, 0, ca, 0, th.at.x, th.at.y, th.at.z, 1};
+        game::Uniforms pu{};
+        mul(mats[c], model, pu.viewProj);
+        g.dev->drawIndexed(g.shadowPipe, d.buf.vb, d.buf.ib, d.buf.count, &pu, sizeof pu, nullptr, 0);
+      }
+      g.dev->endTarget();
+    }
+    u.texel[0] = 2 * radius[0] / kShadowSize, u.texel[1] = 2 * radius[1] / kShadowSize, u.texel[2] = kShadowSize;
+  }
+  const draw::Handle maps[2] = {u.moon[3] > 0.5f ? g.shadowMap[0] : g.blank, u.moon[3] > 0.5f ? g.shadowMap[1] : g.blank};
   const float clear[4] = {0, 0, 0, 1};
   if (!g.dev->begin(clear)) return;
   // The sky, around the eye.
   game::Uniforms su = u;
   su.offset[0] = g.eye.x, su.offset[1] = g.land ? g.eye.y : 0, su.offset[2] = g.eye.z;
-  g.dev->drawIndexed(g.pipe, g.sky.vb, g.sky.ib, g.sky.count, &su, sizeof su, nullptr, 0);
-  if (g.landDraw && g.ground.count) g.dev->drawIndexed(g.pipe, g.ground.vb, g.ground.ib, g.ground.count, &u, sizeof u, nullptr, 0);
-  g.dev->drawIndexed(g.pipe, g.place.vb, g.place.ib, g.place.count, &u, sizeof u, nullptr, 0);
+  g.dev->drawIndexed(g.pipe, g.sky.vb, g.sky.ib, g.sky.count, &su, sizeof su, maps, 2);
+  if (g.landDraw && g.ground.count) g.dev->drawIndexed(g.pipe, g.ground.vb, g.ground.ib, g.ground.count, &u, sizeof u, maps, 2);
+  g.dev->drawIndexed(g.pipe, g.place.vb, g.place.ib, g.place.count, &u, sizeof u, maps, 2);
   for (const auto& d : g.people) {
     if (g.run->hidden(d.thing)) continue;
     const story::Placed& th = pl.things[static_cast<size_t>(d.thing)];
@@ -381,6 +478,8 @@ void frame() {
     const float a = d.yaw * 0.017453292f, c = std::cos(a), s = std::sin(a);
     const float model[16] = {c, 0, -s, 0, 0, 1, 0, 0, s, 0, c, 0, th.at.x, th.at.y + bob, th.at.z, 1};
     mul(u.viewProj, model, pu.viewProj);
+    mul(u.shadow0, model, pu.shadow0);
+    mul(u.shadow1, model, pu.shadow1);
     pu.offset[0] = pu.offset[1] = pu.offset[2] = 0;
     // The shader lights in world space: hand it the eye in the person's own space.
     const Vec3 e = g.eye - Vec3{th.at.x, th.at.y + bob, th.at.z};
@@ -396,7 +495,7 @@ void frame() {
     }
     const Vec3 md = localDir(sky.moonDir);
     pu.moonDir[0] = md.x, pu.moonDir[1] = md.y, pu.moonDir[2] = md.z;
-    g.dev->drawIndexed(g.pipe, d.buf.vb, d.buf.ib, d.buf.count, &pu, sizeof pu, nullptr, 0);
+    g.dev->drawIndexed(g.pipe, d.buf.vb, d.buf.ib, d.buf.count, &pu, sizeof pu, maps, 2);
   }
   g.dev->end();
 }
@@ -411,10 +510,18 @@ void start(std::unique_ptr<draw::Device> dev) {
   pd.label = "story";
   pd.wgsl = game::kWgsl;
   pd.glsl = game::kGlsl;
-  pd.textures = 0;
+  pd.textures = 2;
   pd.layout.stride = sizeof(game::Vertex);
   pd.layout.items = {{draw::Attr::kFloat3, 0}, {draw::Attr::kFloat3, 12}, {draw::Attr::kUnorm8x4, 24}};
   g.pipe = g.dev->pipeline(pd);
+  draw::PipelineDesc sd = pd;
+  sd.label = "the sun's shadow";
+  sd.wgsl = game::kShadowWgsl, sd.glsl = game::kShadowGlsl, sd.textures = 0, sd.toTarget = true;
+  g.shadowPipe = g.dev->pipeline(sd);
+  g.shadowMap[0] = g.dev->target(1024, 1024);
+  g.shadowMap[1] = g.dev->target(1024, 1024);
+  const uint8_t black[4] = {255, 0, 0, 255};
+  g.blank = g.dev->texture(1, 1, draw::Format::kRgba8, black);
   js_status(draw::backendName(g.dev->backend()), g.dev->problem.c_str());
 }
 
@@ -485,6 +592,21 @@ EMSCRIPTEN_KEEPALIVE void g_move(float x, float y) { g.moveX = std::clamp(x, -1.
 EMSCRIPTEN_KEEPALIVE void g_look(float dx, float dy) {
   g.yaw = std::fmod(g.yaw + dx + 360.0f, 360.0f);
   g.pitch = std::clamp(g.pitch - dy, -60.0f, 60.0f);
+}
+// The light panel: the time of day, and each piece of the light on or off.
+EMSCRIPTEN_KEEPALIVE void g_setTime(float hours) {
+  g.hours = std::fmod(hours + 24.0f, 24.0f), g.timeSet = true;
+  g.exposureSet = false;  // scrubbing the time: the eye follows at once
+}
+EMSCRIPTEN_KEEPALIVE void g_switch(int which, int on) {
+  if (which >= 0 && which < 5) g.on[which] = on != 0;
+  g.exposureSet = false;
+}
+EMSCRIPTEN_KEEPALIVE const char* g_light() {
+  char b[200];
+  std::snprintf(b, sizeof b, "{\"hours\":%.2f,\"lux\":%.4g,\"exposure\":%.4g,\"land\":%s}", g.hours, g.lux, g.exposure, g.land ? "true" : "false");
+  g.out = b;
+  return g.out.c_str();
 }
 EMSCRIPTEN_KEEPALIVE void g_next() {
   if (g.run) g.run->next();

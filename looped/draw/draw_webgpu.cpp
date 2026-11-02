@@ -195,7 +195,7 @@ class GpuDevice final : public Device {
     vbl.attributeCount = attrs.size();
     vbl.attributes = attrs.data();
     wgpu::ColorTargetState target;
-    target.format = format_;
+    target.format = d.toTarget ? wgpu::TextureFormat::RGBA16Float : format_;
     wgpu::FragmentState fs;
     fs.module = module;
     fs.entryPoint = "fs_main";
@@ -214,7 +214,7 @@ class GpuDevice final : public Device {
     rp.vertex.buffers = &vbl;
     rp.fragment = &fs;
     rp.depthStencil = &ds;
-    rp.multisample.count = 4;
+    rp.multisample.count = d.toTarget ? 1 : 4;
     rp.primitive.topology = wgpu::PrimitiveTopology::TriangleList;
     rp.primitive.cullMode = d.cullBack ? wgpu::CullMode::Back : wgpu::CullMode::None;
     rp.primitive.frontFace = wgpu::FrontFace::CCW;
@@ -224,13 +224,61 @@ class GpuDevice final : public Device {
     return static_cast<Handle>(pipes_.size());
   }
 
+  Handle target(int w, int h) override {
+    wgpu::TextureDescriptor td;
+    td.size = {static_cast<uint32_t>(w), static_cast<uint32_t>(h), 1};
+    td.format = wgpu::TextureFormat::RGBA16Float;
+    td.usage = wgpu::TextureUsage::TextureBinding | wgpu::TextureUsage::RenderAttachment;
+    wgpu::Texture t = device_.CreateTexture(&td);
+    textures_.push_back(t.CreateView());
+    textureObjects_.push_back(t);
+    textureRepeats_.push_back(false);
+    Target tg;
+    tg.colour = textures_.back();
+    tg.w = static_cast<uint32_t>(w), tg.h = static_cast<uint32_t>(h);
+    td.format = wgpu::TextureFormat::Depth24Plus;
+    td.usage = wgpu::TextureUsage::RenderAttachment;
+    tg.depth = device_.CreateTexture(&td).CreateView();
+    const Handle handle = static_cast<Handle>(textures_.size());
+    targets_[handle] = tg;
+    return handle;
+  }
+
+  bool beginTarget(Handle t, const float clear[4]) override {
+    auto it = targets_.find(t);
+    if (it == targets_.end()) return false;
+    if (!encoder_) encoder_ = device_.CreateCommandEncoder(), draws_ = 0;
+    wgpu::RenderPassColorAttachment ca;
+    ca.view = it->second.colour;
+    ca.loadOp = wgpu::LoadOp::Clear;
+    ca.storeOp = wgpu::StoreOp::Store;
+    ca.clearValue = {clear[0], clear[1], clear[2], clear[3]};
+    wgpu::RenderPassDepthStencilAttachment da;
+    da.view = it->second.depth;
+    da.depthLoadOp = wgpu::LoadOp::Clear;
+    da.depthStoreOp = wgpu::StoreOp::Discard;
+    da.depthClearValue = 1;
+    wgpu::RenderPassDescriptor rp;
+    rp.colorAttachmentCount = 1;
+    rp.colorAttachments = &ca;
+    rp.depthStencilAttachment = &da;
+    pass_ = encoder_.BeginRenderPass(&rp);
+    return true;
+  }
+
+  void endTarget() override {
+    if (!pass_) return;
+    pass_.End();
+    pass_ = nullptr;
+  }
+
   bool begin(const float clear[4]) override {
     wgpu::SurfaceTexture st;
     surface_.GetCurrentTexture(&st);
     if (st.status != wgpu::SurfaceGetCurrentTextureStatus::SuccessOptimal &&
         st.status != wgpu::SurfaceGetCurrentTextureStatus::SuccessSuboptimal)
       return false;
-    encoder_ = device_.CreateCommandEncoder();
+    if (!encoder_) encoder_ = device_.CreateCommandEncoder(), draws_ = 0;
     wgpu::RenderPassColorAttachment ca;
     ca.view = msaa_;
     ca.resolveTarget = st.texture.CreateView();
@@ -247,7 +295,6 @@ class GpuDevice final : public Device {
     rp.colorAttachments = &ca;
     rp.depthStencilAttachment = &da;
     pass_ = encoder_.BeginRenderPass(&rp);
-    draws_ = 0;
     return true;
   }
 
@@ -322,6 +369,11 @@ class GpuDevice final : public Device {
   std::vector<bool> textureRepeats_;
   wgpu::Sampler repeatSampler_;
   std::vector<Pipe> pipes_;
+  struct Target {
+    wgpu::TextureView colour, depth;
+    uint32_t w = 0, h = 0;
+  };
+  std::map<Handle, Target> targets_;
 };
 
 struct Pending {

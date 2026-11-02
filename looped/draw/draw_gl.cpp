@@ -53,6 +53,7 @@ class GlDevice final : public Device {
     if (ctx_ <= 0) return false;
     emscripten_webgl_make_context_current(ctx_);
     glGenBuffers(1, &ubo_);
+    floatTargets_ = emscripten_webgl_enable_extension(ctx_, "EXT_color_buffer_float");
     return true;
   }
 
@@ -157,8 +158,53 @@ class GlDevice final : public Device {
     return static_cast<Handle>(pipes_.size());
   }
 
+  Handle target(int w, int h) override {
+    GLuint t;
+    glGenTextures(1, &t);
+    glBindTexture(GL_TEXTURE_2D, t);
+    // RGBA16F where the browser can draw into it (about all of them); RGBA8 otherwise.
+    if (floatTargets_) glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, w, h, 0, GL_RGBA, GL_HALF_FLOAT, nullptr);
+    else glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    Target tg;
+    tg.w = w, tg.h = h;
+    glGenFramebuffers(1, &tg.fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, tg.fbo);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, t, 0);
+    GLuint rb;
+    glGenRenderbuffers(1, &rb);
+    glBindRenderbuffer(GL_RENDERBUFFER, rb);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, w, h);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rb);
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE && problem.empty()) problem = "a drawing target isn't complete";
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    targets_.push_back({t, tg});
+    return t;
+  }
+
+  bool beginTarget(Handle t, const float clear[4]) override {
+    emscripten_webgl_make_context_current(ctx_);
+    for (const auto& [tex, tg] : targets_) {
+      if (tex != t) continue;
+      glBindFramebuffer(GL_FRAMEBUFFER, tg.fbo);
+      glViewport(0, 0, tg.w, tg.h);
+      glClearColor(clear[0], clear[1], clear[2], clear[3]);
+      glClearDepthf(1);
+      glDepthMask(GL_TRUE);
+      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+      return true;
+    }
+    return false;
+  }
+
+  void endTarget() override { glBindFramebuffer(GL_FRAMEBUFFER, 0); }
+
   bool begin(const float clear[4]) override {
     emscripten_webgl_make_context_current(ctx_);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glViewport(0, 0, static_cast<GLsizei>(width_), static_cast<GLsizei>(height_));
     glClearColor(clear[0], clear[1], clear[2], clear[3]);
     glClearDepthf(1);
@@ -173,7 +219,7 @@ class GlDevice final : public Device {
     Pipe& p = pipes_[pipeline - 1];
     glUseProgram(p.program);
     glBindVertexArray(p.vao);
-    if (p.boundVertices != vertices) {
+    if (p.boundVertices != vertices || p.boundIndices != indices) {
       glBindBuffer(GL_ARRAY_BUFFER, vertices);
       for (size_t i = 0; i < p.desc.layout.items.size(); ++i) {
         const auto& it = p.desc.layout.items[i];
@@ -193,7 +239,7 @@ class GlDevice final : public Device {
         }
       }
       glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indices);
-      p.boundVertices = vertices;
+      p.boundVertices = vertices, p.boundIndices = indices;
     }
     glBindBuffer(GL_UNIFORM_BUFFER, ubo_);
     glBufferData(GL_UNIFORM_BUFFER, static_cast<GLsizeiptr>(bytes), uniforms, GL_DYNAMIC_DRAW);
@@ -214,7 +260,7 @@ class GlDevice final : public Device {
  private:
   struct Pipe {
     GLuint program = 0, vao = 0;
-    Handle boundVertices = 0;
+    Handle boundVertices = 0, boundIndices = 0;
     PipelineDesc desc;
   };
   std::string canvas_;
@@ -222,6 +268,12 @@ class GlDevice final : public Device {
   GLuint ubo_ = 0;
   uint32_t width_ = 1, height_ = 1;
   std::vector<Pipe> pipes_;
+  struct Target {
+    GLuint fbo = 0;
+    int w = 0, h = 0;
+  };
+  std::vector<std::pair<Handle, Target>> targets_;
+  bool floatTargets_ = false;
 };
 
 }  // namespace

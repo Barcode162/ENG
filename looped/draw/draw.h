@@ -48,6 +48,7 @@ struct PipelineDesc {
   int textures = 0;     // how many texture slots it reads (0..4)
   bool depth = true;
   bool cullBack = false;
+  bool toTarget = false;  // draws into a target() (RGBA16F, no multisampling), not the screen
   std::string label;
 };
 
@@ -71,6 +72,13 @@ class Device {
   virtual void updateVertices(Handle b, size_t offset, const void* data, size_t bytes) = 0;  // offset and bytes: whole 4-byte words
   // New contents for the start of an index buffer (J116.6: the clusters picked for this view).
   virtual void updateIndices(Handle b, const uint32_t* data, size_t count) = 0;
+  // A picture to draw into and then read as a texture (J122: shadows): RGBA16F
+  // with its own depth. The handle is a texture handle. Within a frame, draw
+  // into targets first (beginTarget … drawIndexed … endTarget), then begin()
+  // the screen.
+  virtual Handle target(int width, int height) = 0;
+  virtual bool beginTarget(Handle t, const float clear[4]) = 0;
+  virtual void endTarget() = 0;
   // A frame: clear the screen (and depth), then draws, then present.
   virtual bool begin(const float clear[4]) = 0;
   // `uniforms` (std140, at most 4096 bytes) for this draw only.
