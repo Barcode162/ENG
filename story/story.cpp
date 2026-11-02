@@ -85,9 +85,9 @@ bool skyNamed(std::string_view name, Sky& o) {
     o.moonDir = engine::normalize(Vec3{-0.6f, 0.25f, -0.75f}), o.moon = hex(2.6f, 1.7f, 1.15f);
     o.ambient = hex(0.55f, 0.52f, 0.62f), o.exposure = 1.5f;
   } else if (name == "day") {
-    o.top = hex(0.25f, 0.42f, 0.85f), o.horizon = hex(0.62f, 0.72f, 0.86f);
-    o.moonDir = engine::normalize(Vec3{0.4f, 0.8f, -0.3f}), o.moon = hex(5.f, 4.6f, 4.0f);
-    o.ambient = hex(1.4f, 1.6f, 2.0f), o.exposure = 0.55f;
+    o.top = hex(0.16f, 0.3f, 0.7f), o.horizon = hex(0.55f, 0.62f, 0.72f);
+    o.moonDir = engine::normalize(Vec3{0.55f, 0.42f, -0.72f}), o.moon = hex(5.6f, 4.9f, 3.9f);
+    o.ambient = hex(0.6f, 0.75f, 1.05f), o.exposure = 0.6f;
   } else if (name == "cave") {
     o.top = hex(0.0f, 0.0f, 0.0f), o.horizon = hex(0.00086667f, 0.00086667f, 0.0011556f);
     o.moonDir = Vec3{0, 1, 0}, o.moon = hex(0.0f, 0.0f, 0.0f);
@@ -246,7 +246,7 @@ std::string maskProse(std::string_view text, std::map<int, std::string>& prose) 
     if (colon != std::string::npos) {
       const std::string head = keyOf(raw.substr(0, colon));
       const std::string first = head.substr(0, head.find(' '));
-      const bool words = first == "colour" || first == "color" || head == "sky" || head == "ground" || head == "mist" ||
+      const bool words = first == "colour" || first == "color" || head == "sky" || head == "ground" || head == "mist" || head == "land" ||
                          head.rfind("light", 0) == 0 || first == "like" || first == "settings";
       std::string fullHead = lower(raw.substr(0, colon));
       while (!fullHead.empty() && fullHead[0] == ' ') fullHead.erase(0, 1);
@@ -669,6 +669,24 @@ void Reader::placeBlock(const Line& l, Ctx& c) {
           c.bad(x, "the ground's size is wide by deep", "the ground: moss, 40 by 40 m");
         }
       }
+    } else if (w == "the" && isWord(x, 1, "land") && isSym(x, 2, ':')) {
+      // the land: seed 7, 6 km across
+      size_t i = 3;
+      float seed = 7, across = 6;
+      bool ok = isWord(x, i, "seed") && (++i, number(x, i, x.tokens.size(), seed));
+      if (ok && isSym(x, i, ',')) {
+        ++i;
+        ok = number(x, i, x.tokens.size(), across);
+        const bool km = isWord(x, i, "km");
+        if (ok && (km || isWord(x, i, "m"))) ++i;
+        if (km) across *= 1000;
+        ok = ok && isWord(x, i, "across") && i + 1 == x.tokens.size();
+      }
+      if (!ok || across < 200 || across > 20000) {
+        c.bad(x, "the land is a seed and how far across (200 m to 20 km)", "the land: seed 7, 6 km across");
+        continue;
+      }
+      pl.hasLand = true, pl.landSeed = static_cast<uint32_t>(seed), pl.groundW = pl.groundD = across;
     } else if (w == "you" && isWord(x, 1, "come") && isWord(x, 2, "in")) {
       size_t i = findW(x, "at");
       float a, b;

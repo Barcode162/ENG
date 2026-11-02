@@ -19,6 +19,7 @@
 // indentation says what belongs to what, and every problem has its file,
 // line, column, plain words and a "did you mean" hint. Text after a
 // speaker's colon is prose, kept exactly as written. Plain C++.
+#include <cstdint>
 #include <functional>
 #include <map>
 #include <set>
@@ -164,6 +165,9 @@ struct Place {
   float groundW = 40, groundD = 40;
   Vec3 start;
   float facing = 0;
+  // A land of hills and mountains made from a seed (world/land.h), instead of flat ground.
+  bool hasLand = false;
+  uint32_t landSeed = 7;
   std::vector<Placed> things;
   std::vector<Handler> handlers;
   std::string file;

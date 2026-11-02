@@ -37,7 +37,7 @@ void addPart(Mesh& m, const story::Part& p, const Place3& where, bool lit);
 void addKind(Mesh& m, const story::Kind& k, const Place3& where, bool lit);
 void addPerson(Mesh& m, const story::Person& p, const Place3& where);
 void addGround(Mesh& m, const story::Place& pl);
-void addSky(Mesh& m, const story::Sky& sky, uint32_t seed);
+void addSky(Mesh& m, const story::Sky& sky, uint32_t seed, float radius = 150);
 
 // The whole place as it looks now (hidden things left out, unlit ones dark;
 // people are drawn on their own).

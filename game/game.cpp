@@ -23,6 +23,7 @@
 #include "looped/world/loop.h"
 #include "story/run.h"
 #include "story/story.h"
+#include "world/land.h"
 
 using namespace engine;
 
@@ -62,7 +63,9 @@ struct Game {
   std::string engineWords;
   story::Story story;
   std::unique_ptr<story::Runner> run;
-  Buffers place, sky;
+  Buffers place, sky, ground;
+  std::unique_ptr<terrain::Land> land;  // the place's land, when it has one
+  std::unique_ptr<terrain::LandDraw> landDraw;
   std::vector<PersonDraw> people;
   uint32_t built = 0xffffffff;
   int skyFor = -2;
@@ -112,7 +115,12 @@ void rebuild() {
   if (g.skyFor != g.run->place()) {
     g.skyFor = g.run->place();
     game::Mesh s;
-    game::addSky(s, here().sky, 1234u + static_cast<uint32_t>(g.skyFor));
+    g.landDraw.reset(), g.land.reset();
+    if (here().hasLand) {
+      g.land = std::make_unique<terrain::Land>(terrain::shapeOf(here()));
+      g.landDraw = std::make_unique<terrain::LandDraw>(*g.land);
+    }
+    game::addSky(s, here().sky, 1234u + static_cast<uint32_t>(g.skyFor), g.land ? 7000.0f : 150.0f);
     upload(g.sky, s);
     // The people here, each drawn on its own so they can turn to you.
     g.people.clear();
@@ -135,6 +143,9 @@ void rebuild() {
 }
 
 // ---- Walking ----
+
+// The ground under a point: the land's height, or 0 on flat ground.
+float groundAt(float x, float z) { return g.land ? std::max(g.land->height(x, z), g.land->shape().sea - 1.2f) : 0.0f; }
 
 // Pushes `p` out of everything solid here.
 void collide(Vec3& p) {
@@ -275,7 +286,7 @@ void frame() {
   g.last = now;
   if (g.run->arrived()) {
     const story::Place& pl = here();
-    g.eye = {pl.start.x, kEye, pl.start.z};
+    g.eye = {pl.start.x, pl.start.y + kEye, pl.start.z};
     g.yaw = pl.facing, g.pitch = -4;
     g.run->clearArrived();
     g.skyFor = -2;
@@ -287,7 +298,9 @@ void frame() {
     const Vec3 fwd{std::sin(yr), 0, -std::cos(yr)}, right{std::cos(yr), 0, std::sin(yr)};
     Vec3 p = g.eye + (fwd * g.moveY + right * g.moveX) * (kWalk * dt);
     collide(p);
-    g.eye = {p.x, kEye, p.z};
+    // Over land, the eye follows the ground (a little smoothed, like steps).
+    const float want = groundAt(p.x, p.z) + kEye;
+    g.eye = {p.x, g.land ? g.eye.y + (want - g.eye.y) * std::min(1.0f, dt * 12) : kEye, p.z};
   }
   // People turn to face you when you come close.
   const story::Place& pl = here();
@@ -309,7 +322,14 @@ void frame() {
   const float view[16] = {right.x, up.x, -f.x, 0, right.y, up.y, -f.y, 0, right.z, up.z, -f.z, 0,
                           -dot(right, g.eye), -dot(up, g.eye), dot(f, g.eye), 1};
   float proj[16];
-  perspective(proj, 68 * 0.017453292f, static_cast<float>(w) / static_cast<float>(h), 0.05f, 400, g.dev->backend() == draw::Backend::kWebGpu);
+  perspective(proj, 68 * 0.017453292f, static_cast<float>(w) / static_cast<float>(h), g.land ? 0.25f : 0.05f, g.land ? 9000.0f : 400.0f,
+              g.dev->backend() == draw::Backend::kWebGpu);
+  // The land around you: fine near, coarse far, picked again as you walk.
+  if (g.landDraw && g.landDraw->pick(g.eye)) {
+    game::Mesh lm;
+    g.landDraw->mesh(lm);
+    upload(g.ground, lm);
+  }
   mul(proj, view, u.viewProj);
   const story::Sky& sky = pl.sky;
   u.eye[0] = g.eye.x, u.eye[1] = g.eye.y, u.eye[2] = g.eye.z, u.eye[3] = sky.exposure;
@@ -347,8 +367,9 @@ void frame() {
   if (!g.dev->begin(clear)) return;
   // The sky, around the eye.
   game::Uniforms su = u;
-  su.offset[0] = g.eye.x, su.offset[1] = 0, su.offset[2] = g.eye.z;
+  su.offset[0] = g.eye.x, su.offset[1] = g.land ? g.eye.y : 0, su.offset[2] = g.eye.z;
   g.dev->drawIndexed(g.pipe, g.sky.vb, g.sky.ib, g.sky.count, &su, sizeof su, nullptr, 0);
+  if (g.landDraw && g.ground.count) g.dev->drawIndexed(g.pipe, g.ground.vb, g.ground.ib, g.ground.count, &u, sizeof u, nullptr, 0);
   g.dev->drawIndexed(g.pipe, g.place.vb, g.place.ib, g.place.count, &u, sizeof u, nullptr, 0);
   for (const auto& d : g.people) {
     if (g.run->hidden(d.thing)) continue;
@@ -437,6 +458,7 @@ EMSCRIPTEN_KEEPALIVE const char* g_begin(const char* save) {
   for (const auto& n : notes)
     if (!n.p.warning) g.out += n.text() + "\n";
   if (!ok) return g.out.c_str();
+  terrain::settle(g.story);
   g.run = std::make_unique<story::Runner>(g.story, static_cast<uint32_t>(emscripten_get_now()) | 1u);
   std::string s = save ? save : "";
   float px = 0, pz = 0, pyaw = 0;
@@ -446,7 +468,9 @@ EMSCRIPTEN_KEEPALIVE const char* g_begin(const char* save) {
   if (!s.empty() && g.run->load(s)) {
     g.run->clearArrived();
     const story::Place& pl = here();
-    g.eye = hasPos ? Vec3{px, kEye, pz} : Vec3{pl.start.x, kEye, pl.start.z};
+    g.eye = hasPos ? Vec3{px, kEye, pz} : Vec3{pl.start.x, pl.start.y + kEye, pl.start.z};
+    g.landDraw.reset(), g.land.reset();
+    if (pl.hasLand) g.eye.y = terrain::Land(terrain::shapeOf(pl)).height(g.eye.x, g.eye.z) + kEye;
     g.yaw = hasPos ? pyaw : pl.facing;
   } else {
     g.run->start();

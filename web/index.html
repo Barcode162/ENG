@@ -127,6 +127,7 @@
       <button class="go" id="begin" disabled>Loading…</button>
       <button class="soft hidden" id="carry">Carry on</button>
       <a class="link" href="script.html">Read the script</a>
+      <a class="link" id="other" href="?story=wilds">New: walk the Wilds, an island 6 km across</a>
     </div>
     <div class="small" id="status"></div>
   </div>
@@ -148,7 +149,9 @@
 <script>
 'use strict';
 const $ = (id) => document.getElementById(id);
-const SAVE = 'last-ember-save-v1';
+const WILDS = /[?&]story=wilds/.test(location.search);
+const FOLDER = WILDS ? 'wilds/' : 'story/';
+const SAVE = WILDS ? 'wilds-save-v1' : 'last-ember-save-v1';
 const store = {
   get() { try { return localStorage.getItem(SAVE) || ''; } catch (e) { return ''; } },
   set(v) { try { if (v) localStorage.setItem(SAVE, v); else localStorage.removeItem(SAVE); } catch (e) {} },
@@ -179,9 +182,15 @@ var Module = {
   },
 };
 
+if (WILDS) {
+  document.querySelector('#title h1').textContent = 'The Wilds';
+  document.querySelector('#title p').textContent = 'An island six kilometres across, made by our own rules from a single number. Walk to the highest peak.';
+  document.title = 'The Wilds';
+  const o = document.getElementById('other'); o.textContent = 'Back to The Last Ember'; o.href = './';
+}
 async function loadStory() {
   try {
-    const get = async (n) => { const r = await fetch('story/' + n, { cache: 'no-cache' }); if (!r.ok) throw new Error(n + ' is missing'); return r.text(); };
+    const get = async (n) => { const r = await fetch(FOLDER + n, { cache: 'no-cache' }); if (!r.ok) throw new Error(n + ' is missing'); return r.text(); };
     const first = await get('story.looped');
     const names = api.files(first).split('\n').filter(Boolean);
     const texts = await Promise.all(['first.looped', ...names].map(get));

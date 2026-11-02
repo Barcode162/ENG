@@ -188,14 +188,13 @@ void addGround(Mesh& m, const story::Place& pl) {
   quad(m, {w / 2, -0.02f, -d / 2}, {w / 2, -0.02f, d / 2}, {r, -0.02f, d / 2}, {r, -0.02f, -d / 2}, rim);
 }
 
-void addSky(Mesh& m, const story::Sky& sky, uint32_t seed) {
+void addSky(Mesh& m, const story::Sky& sky, uint32_t seed, float R) {
   // A dome around the eye (the game keeps it centred on you): its colour from the horizon to the top.
   const int seg = 24, rings = 10;
-  const float R = 150;
   auto at = [&](int i, int j) {
     const float th = (kPi / 2) * static_cast<float>(j) / static_cast<float>(rings);  // 0 top .. pi/2 horizon
     const float ph = 2 * kPi * static_cast<float>(i) / static_cast<float>(seg);
-    return Vec3{std::cos(ph) * std::sin(th) * R, std::cos(th) * R - 10, std::sin(ph) * std::sin(th) * R};
+    return Vec3{std::cos(ph) * std::sin(th) * R, std::cos(th) * R - R * 0.07f, std::sin(ph) * std::sin(th) * R};
   };
   auto colour = [&](int j) {
     const float t = static_cast<float>(j) / static_cast<float>(rings);
@@ -211,7 +210,7 @@ void addSky(Mesh& m, const story::Sky& sky, uint32_t seed) {
   // A skirt below the horizon in the horizon's colour.
   for (int i = 0; i < seg; ++i) {
     const Vec3 a = at(i, rings), b = at(i + 1, rings);
-    quad(m, a, b, b + Vec3{0, -60, 0}, a + Vec3{0, -60, 0}, Paint{sky.horizon, 255});
+    quad(m, a, b, b + Vec3{0, -R * 0.6f, 0}, a + Vec3{0, -R * 0.6f, 0}, Paint{sky.horizon, 255});
   }
   if (sky.stars) {
     for (int k = 0; k < 260; ++k) {
@@ -223,9 +222,9 @@ void addSky(Mesh& m, const story::Sky& sky, uint32_t seed) {
       const float b = 0.3f + 0.7f * static_cast<float>(seed >> 8) / 16777216.0f;
       const float ph = 2 * kPi * u, th = std::acos(1 - v * 0.85f);
       const Vec3 dir{std::cos(ph) * std::sin(th), std::cos(th), std::sin(ph) * std::sin(th)};
-      const Vec3 c = dir * (R * 0.97f) + Vec3{0, -10, 0};
+      const Vec3 c = dir * (R * 0.97f) + Vec3{0, -R * 0.07f, 0};
       const Vec3 e1 = engine::normalize(engine::cross(dir, {0, 1, 0.001f})), e2 = engine::cross(dir, e1);
-      const float s = 0.16f + 0.2f * b;
+      const float s = (0.16f + 0.2f * b) * R / 150;
       tri(m, c + e1 * s, c + e2 * s, c - e1 * s, Paint{Vec3{1, 0.95f, 0.85f} * (0.06f * b), 255});
       tri(m, c - e1 * s, c - e2 * s, c + e1 * s, Paint{Vec3{1, 0.95f, 0.85f} * (0.06f * b), 255});
     }
@@ -236,7 +235,7 @@ void buildPlace(Mesh& m, const story::Story& s, const story::Runner& r) {
   m.v.clear(), m.i.clear();
   if (r.place() < 0) return;
   const story::Place& pl = s.places[static_cast<size_t>(r.place())];
-  addGround(m, pl);
+  if (!pl.hasLand) addGround(m, pl);
   for (size_t t = 0; t < pl.things.size(); ++t) {
     if (r.hidden(static_cast<int>(t))) continue;
     const story::Placed& th = pl.things[t];
